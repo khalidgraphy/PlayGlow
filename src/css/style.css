@@ -541,6 +541,49 @@ body::before {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ---------- Visual (image with emoji fallback) ----------
+   visualFor() in engine.js renders either <img class="visual-img"> for
+   words we have curated photos for, or <span class="visual-emoji"> otherwise.
+   Both are placed inside the same slot (emoji-card, lvl-emoji, option-tile,
+   word-emoji) so swapping is invisible to the layout. */
+.visual-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  background: #f5f5fb;
+}
+.visual-emoji {
+  font-size: inherit;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Emoji card slot uses a smaller corner radius via class; image inherits */
+.emoji-card .visual-img {
+  border-radius: 18px;
+  width: 100%;
+  height: 100%;
+  max-width: 140px;
+  max-height: 140px;
+  margin: 0 auto;
+}
+.lvl-emoji .visual-img,
+.word-emoji .visual-img {
+  border-radius: 14px;
+}
+/* Option tiles displaying a word visual (Hear & Tap) */
+.option-tile.emoji .visual-img {
+  width: 92%;
+  height: 92%;
+  border-radius: 14px;
+}
+.option-tile.emoji .visual-emoji {
+  font-size: inherit;
+}
+
 /* ---------- Big emoji card ---------- */
 .emoji-card {
   background: linear-gradient(180deg, #F4F1FF, #E9E4FF);

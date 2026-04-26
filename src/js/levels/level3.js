@@ -8,7 +8,7 @@
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
 import { firstLetter, letterChoices } from '../alphabets.js';
-import { renderNames, bindSpeakers, escape } from '../engine.js';
+import { renderNames, bindSpeakers, escape, visualFor } from '../engine.js';
 
 export const level3 = {
   id: 7,
@@ -35,7 +35,7 @@ export const level3 = {
     const isRTL = quizLang !== 'en';
 
     stage.innerHTML = `
-      <div class="emoji-card">${round.target.emoji || '❓'}</div>
+      <div class="emoji-card">${visualFor(round.target)}</div>
       ${renderNames(round)}
       <div class="prompt">
         <div class="prompt-label">FIRST LETTER OF</div>

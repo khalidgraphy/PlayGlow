@@ -5,7 +5,7 @@
 
 import { Audio } from '../audio.js';
 import { ALPHABETS, shuffle } from '../alphabets.js';
-import { escape } from '../engine.js';
+import { escape, visualFor } from '../engine.js';
 import { pickWordsByLength } from './dailywords.js';
 
 // Pre-filter once: 3-5 letter words, only A-Z (drop hyphens, spaces, accents)
@@ -46,7 +46,7 @@ export const missingLetter = {
     const choices = shuffle([correct, ...distractors]);
 
     stage.innerHTML = `
-      <div class="emoji-card">${pick.emoji}</div>
+      <div class="emoji-card">${visualFor({ en: pick.en, emoji: pick.emoji })}</div>
       <div style="display:flex;justify-content:center;gap:14px;align-items:center">
         <button class="big-speaker" id="play-target" style="width:56px;height:56px;font-size:24px">🔊</button>
       </div>

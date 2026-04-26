@@ -7,7 +7,7 @@
 
 import { Audio } from '../audio.js';
 import { ALPHABETS, shuffle } from '../alphabets.js';
-import { escape } from '../engine.js';
+import { escape, visualFor } from '../engine.js';
 
 const WORDS = [
   // 30 three-letter
@@ -53,7 +53,7 @@ export const level4 = {
     const tray = shuffle([...letters, distractor]);
 
     stage.innerHTML = `
-      <div class="emoji-card">${pick.e}</div>
+      <div class="emoji-card">${visualFor({ en: pick.w, emoji: pick.e })}</div>
       <div style="display:flex;justify-content:center;gap:14px;align-items:center">
         <button class="big-speaker" id="play-target" style="width:56px;height:56px;font-size:24px">🔊</button>
         <button class="chip" id="reveal-btn">Reveal</button>

@@ -189,3 +189,24 @@ export function escape(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 export function escapeAttr(s) { return escape(s); }
+
+// ---------- Visual helper: real image when available, emoji fallback ----------
+// Words with a curated photo in /public/words/{slug}.jpg.
+// Built from scripts/fetch_images.py output. Fed words show real images;
+// everything else falls back to the emoji.
+import { WORDS_WITH_IMAGES } from './wordImages.js';
+
+function slugify(s) {
+  return String(s || '').toLowerCase().replace(/[^a-z]/g, '');
+}
+
+// Returns HTML: <img> if we have a curated image, else emoji span.
+// Use inside any emoji-card, option-tile, or word-emoji slot.
+export function visualFor(word) {
+  if (!word) return '<span class="visual-emoji">❓</span>';
+  const slug = slugify(word.en);
+  if (WORDS_WITH_IMAGES.has(slug)) {
+    return `<img class="visual-img" src="/words/${slug}.jpg" alt="${escapeAttr(word.en)}" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'visual-emoji',textContent:${JSON.stringify(word.emoji || '❓')}}))" />`;
+  }
+  return `<span class="visual-emoji">${escape(word.emoji || '❓')}</span>`;
+}

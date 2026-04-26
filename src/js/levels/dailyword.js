@@ -4,7 +4,7 @@
 
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
-import { escape } from '../engine.js';
+import { escape, visualFor } from '../engine.js';
 import { dailyWord } from './dailywords.js';
 
 const LAST_KEY = 'wordglow:daily_last_date';
@@ -33,7 +33,7 @@ export const dailyWordLevel = {
       <div style="text-align:center;font-size:11px;color:#888;font-weight:700;letter-spacing:1.5px">
         TODAY · ${today}
       </div>
-      <div class="emoji-card">${word.emoji}</div>
+      <div class="emoji-card">${visualFor(word)}</div>
       <div class="names-stack">
         <div class="name-row">
           <button class="speaker" data-speak="${escape(word.en)}" data-lang="en" aria-label="Play English">🔊</button>

@@ -4,7 +4,7 @@
 
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
-import { escape } from '../engine.js';
+import { escape, visualFor } from '../engine.js';
 import { WORDS_BY_LETTER, ALL_LETTERS } from './wordfinderdata.js';
 
 export const wordFinder = {
@@ -39,7 +39,7 @@ export const wordFinder = {
       const secLabel = sec === 'ar' ? 'AR' : 'UR';
       return words.map(w => `
         <div class="word-card" data-en="${escape(w.en)}">
-          <div class="word-emoji">${w.emoji}</div>
+          <div class="word-emoji">${visualFor(w)}</div>
           <div class="word-body">
             <div class="word-row">
               <button class="speaker-mini" data-speak="${escape(w.en)}" data-lang="en">🔊</button>

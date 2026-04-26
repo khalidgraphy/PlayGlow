@@ -6,7 +6,7 @@
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
 import { shuffle } from '../alphabets.js';
-import { escape } from '../engine.js';
+import { escape, visualFor } from '../engine.js';
 
 export const level5 = {
   id: 8,
@@ -26,7 +26,7 @@ export const level5 = {
     const targetTag = targetLang === 'ar' ? 'AR' : 'UR';
 
     stage.innerHTML = `
-      <div class="emoji-card">${round.target.emoji || '❓'}</div>
+      <div class="emoji-card">${visualFor(round.target)}</div>
       <div class="prompt">
         <div class="prompt-label">FIND THE SAME WORD</div>
         <div class="prompt-text">

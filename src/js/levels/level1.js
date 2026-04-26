@@ -5,7 +5,7 @@
 
 import { Audio } from '../audio.js';
 import { shuffle } from '../alphabets.js';
-import { escape } from '../engine.js';
+import { escape, visualFor } from '../engine.js';
 
 export const level1 = {
   id: 4,
@@ -34,7 +34,7 @@ export const level1 = {
       </div>
       <div class="options-grid cols-3">
         ${all.map(t => `
-          <button class="option-tile emoji" data-id="${t.id}" aria-label="${escape(t.en)}">${t.emoji || '❓'}</button>
+          <button class="option-tile emoji" data-id="${t.id}" aria-label="${escape(t.en)}">${visualFor(t)}</button>
         `).join('')}
       </div>
     `;

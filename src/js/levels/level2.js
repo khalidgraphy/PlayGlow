@@ -3,7 +3,7 @@
 // + speakers. Star awarded when kid plays both audios.
 
 import { Storage } from '../storage.js';
-import { renderNames, bindSpeakers } from '../engine.js';
+import { renderNames, bindSpeakers, visualFor } from '../engine.js';
 
 export const level2 = {
   id: 6,
@@ -21,7 +21,7 @@ export const level2 = {
     const secLabel = sec === 'ar' ? 'Arabic' : 'Urdu';
 
     stage.innerHTML = `
-      <div class="emoji-card">${round.target.emoji || '❓'}</div>
+      <div class="emoji-card">${visualFor(round.target)}</div>
       ${renderNames(round)}
       <div style="text-align:center;color:#888;font-size:13px">Tap each 🔊 to hear it</div>
       <button class="button" id="next-word" disabled style="opacity:.55">Hear English & ${secLabel} to continue</button>
