@@ -1,12 +1,10 @@
-// Activity 2: Cloud ABC (learning version)
-// Show a CAPITAL target letter at top. 4 LOWERCASE letters drift down slowly
-// from clouds. Kid taps the lowercase that matches the capital.
+// Activity 2: Cloud ABC (CSS-transition version — no rAF, no animation wars)
+// Show CAPITAL target. 4 LOWERCASE letters fall from clouds via a single CSS
+// transition (~1.4s each). Once at rest they just sit there waiting for tap.
 //   right tap  → +1 right, next round
-//   wrong tap  → +1 wrong, next round
-//   5 rights → advance to next series (A-F → A-J → A-Z)
-//   5 wrongs → game over, replay
-// Letters fall to a rest-line near the ground and stay there until tapped —
-// no time pressure, this is a recognition game.
+//   wrong tap  → +1 wrong, that letter dims + becomes inert, others stay tappable
+//   5 rights → next series (A-F → A-J → A-Z)
+//   5 wrongs → game over
 
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
@@ -19,8 +17,8 @@ const SERIES = [
 ];
 const TARGET_RIGHTS = 5;
 const TARGET_WRONGS = 5;
-const FALL_PX_PER_S = 28;     // gentle — kid has time to read all 4
-const REST_FRACTION = 0.72;   // letters stop at 72% of stage height
+const FALL_MS = 1400;          // 1.4s smooth fall via CSS transition
+const REST_FRACTION = 0.72;
 
 let abortPrev = null;
 
@@ -41,11 +39,9 @@ export const cloudABC = {
     let seriesIdx = 0;
     let rights = 0;
     let wrongs = 0;
-    let target = '';        // current capital letter
-    let letters = [];       // { id, char, x, y, restY, el, settled }
-    let lastTs = performance.now();
-    let nextLetterId = 0;
+    let target = '';
     let roundLocked = false;
+    let nextLetterId = 0;
 
     stage.innerHTML = `
       <div class="cloudabc-root">
@@ -76,27 +72,18 @@ export const cloudABC = {
     const wrongEl = stage.querySelector('#ca-wrong');
 
     function clearLetters() {
-      letters.forEach(l => l.el.remove());
-      letters = [];
+      sky.querySelectorAll('.ca-letter').forEach(el => el.remove());
     }
 
     function pickRound() {
+      if (cancelled) return;
+      roundLocked = false;
       const pool = SERIES[seriesIdx].letters;
       target = pool[Math.floor(Math.random() * pool.length)];
       targetEl.textContent = target;
-      // 4 falling letters: 1 correct + 3 distractors
       const distractors = pool.filter(L => L !== target);
-      // Fisher-Yates
-      for (let i = distractors.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
-      }
-      const choices = [target, ...distractors.slice(0, 3)];
-      // shuffle final 4
-      for (let i = choices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [choices[i], choices[j]] = [choices[j], choices[i]];
-      }
+      shuffle(distractors);
+      const choices = shuffle([target, ...distractors.slice(0, 3)]);
       spawnLetters(choices);
       Audio.speak(target, 'en');
     }
@@ -105,52 +92,53 @@ export const cloudABC = {
       clearLetters();
       const W = sky.clientWidth || 320;
       const H = sky.clientHeight || 360;
-      const restY = H * REST_FRACTION;
-      // Distribute across width
-      const slots = chars.length;
-      const slotW = W / slots;
+      const restY = Math.round(H * REST_FRACTION);
+      const slotW = W / chars.length;
+
       chars.forEach((char, i) => {
         const id = ++nextLetterId;
-        const x = i * slotW + slotW / 2 - 27 + (Math.random() * 30 - 15);
+        const x = Math.round(i * slotW + slotW / 2 - 25 + (Math.random() * 24 - 12));
         const col = COLOR_MAP[char];
         const el = document.createElement('button');
         el.className = 'ca-letter';
         el.dataset.id = id;
+        el.dataset.char = char;
         el.textContent = char.toLowerCase();
         el.style.background = col.bg;
         el.style.color = col.text;
         if (char === 'W') el.style.border = '2px solid #d8d8e8';
+        // Start above the stage
         el.style.transform = `translate(${x}px, -60px)`;
-        el.onclick = () => onPick(char, el);
+        el.style.transition = 'none';
+        el.addEventListener('click', () => onPick(char, el));
         sky.appendChild(el);
-        letters.push({ id, char, x, y: -60, restY, el, settled: false });
+
+        // Force reflow then trigger the smooth fall via CSS transition.
+        // No rAF involved — browser handles the tween.
+        requestAnimationFrame(() => {
+          el.style.transition = `transform ${FALL_MS}ms cubic-bezier(.32,.72,.55,1), opacity 0.3s ease, box-shadow 0.3s ease`;
+          el.style.transform = `translate(${x}px, ${restY}px)`;
+        });
       });
     }
 
     function onPick(char, el) {
-      // If this letter is already settled-as-tried, ignore re-tap
-      if (el.dataset.tried === '1') return;
-      // Round-lock only applies to the brief end-of-round window after a CORRECT pick
       if (roundLocked) return;
-
-      const isRight = char === target;
-      const letterObj = letters.find(l => l.el === el);
-
-      // Freeze this letter in place so the rAF loop stops moving it (otherwise
-      // the inline transform we set every frame overrides the CSS animation).
-      if (letterObj) letterObj.frozen = true;
+      if (el.dataset.tried === '1') return;
       el.dataset.tried = '1';
 
-      if (isRight) {
+      if (char === target) {
         roundLocked = true;
-        letters.forEach(l => { l.frozen = true; });
-        // Inline animation that respects the letter's current x,y position
-        const lx = letterObj?.x ?? 0;
-        const ly = letterObj?.y ?? 0;
-        el.style.transition = 'transform 0.5s cubic-bezier(.34,1.56,.64,1), opacity 0.5s ease, box-shadow 0.3s ease';
+        // Pop the right letter; freeze others (disable taps so kid can't keep tapping)
+        sky.querySelectorAll('.ca-letter').forEach(l => { l.style.pointerEvents = 'none'; });
+        // Keep its transition but boost it for the celebration
+        const tr = el.style.transform; // current translate(x, restY)
+        el.style.transition = 'transform 0.45s cubic-bezier(.34,1.56,.64,1), opacity 0.45s ease, box-shadow 0.3s ease';
         el.style.boxShadow = '0 0 0 8px rgba(76, 175, 80, 0.45), 0 4px 0 rgba(0,0,0,0.18)';
-        el.style.transform = `translate(${lx}px, ${ly - 30}px) scale(1.5)`;
-        setTimeout(() => { el.style.opacity = '0'; }, 200);
+        // Bump it up + scale by adding to the existing translate
+        el.style.transform = tr.replace(/translate\(([^,]+),\s*([^)]+)\)/, (_m, x, y) =>
+          `translate(${x}, calc(${y} - 30px)) scale(1.5)`);
+        setTimeout(() => { el.style.opacity = '0'; }, 250);
         Audio.speak(char, 'en');
         Audio.correct();
         rights += 1;
@@ -158,29 +146,25 @@ export const cloudABC = {
         setTimeout(() => {
           if (cancelled) return;
           if (rights >= TARGET_RIGHTS) return advance();
-          roundLocked = false;
           pickRound();
         }, 900);
       } else {
-        // WRONG: don't advance. Disable this letter; others keep falling
-        // and stay tappable. Kid keeps trying until they pick correctly.
-        el.style.pointerEvents = 'none';
-        el.style.transition = 'opacity 0.5s ease, box-shadow 0.3s ease';
+        // WRONG: don't advance. Disable just this letter.
+        el.style.transition = 'opacity 0.4s ease, box-shadow 0.3s ease';
         el.style.boxShadow = '0 0 0 6px rgba(255, 90, 90, 0.5), 0 4px 0 rgba(0,0,0,0.18)';
+        el.style.pointerEvents = 'none';
         setTimeout(() => {
           el.style.opacity = '0.35';
           el.style.boxShadow = '0 4px 0 rgba(0,0,0,0.18), inset 0 -3px 0 rgba(0,0,0,0.10)';
-        }, 350);
+        }, 380);
         Audio.wrong();
         wrongs += 1;
         wrongEl.textContent = `${wrongs}/${TARGET_WRONGS}`;
         if (wrongs >= TARGET_WRONGS) {
           roundLocked = true;
-          // Highlight the correct letter so kid sees what was right
-          const correctEl = letters.find(l => l.char === target)?.el;
-          if (correctEl) {
-            correctEl.style.boxShadow = '0 0 0 8px rgba(76, 175, 80, 0.5), 0 4px 0 rgba(0,0,0,0.18)';
-          }
+          sky.querySelectorAll('.ca-letter').forEach(l => { l.style.pointerEvents = 'none'; });
+          const correctEl = sky.querySelector(`.ca-letter[data-char="${target}"]`);
+          if (correctEl) correctEl.style.boxShadow = '0 0 0 8px rgba(76, 175, 80, 0.5), 0 4px 0 rgba(0,0,0,0.18)';
           setTimeout(() => { if (!cancelled) endGame(false); }, 1100);
         }
       }
@@ -189,12 +173,11 @@ export const cloudABC = {
     function advance() {
       if (seriesIdx + 1 >= SERIES.length) return endGame(true);
       seriesIdx += 1;
-      rights = 0; wrongs = 0; roundLocked = false;
+      rights = 0; wrongs = 0;
       seriesEl.textContent = SERIES[seriesIdx].name;
       rightEl.textContent = `0/${TARGET_RIGHTS}`;
       wrongEl.textContent = `0/${TARGET_WRONGS}`;
       Audio.win();
-      // brief celebration
       targetEl.textContent = '⭐';
       setTimeout(() => { if (!cancelled) pickRound(); }, 800);
     }
@@ -217,32 +200,21 @@ export const cloudABC = {
       });
     }
 
-    function tick(ts) {
-      if (cancelled) return;
-      if (!document.body.contains(root)) { cancelled = true; return; }
-      const dt = Math.min(0.05, (ts - lastTs) / 1000);
-      lastTs = ts;
+    // Watchdog: stop everything if the user navigates away (#stage gets replaced)
+    const watchdog = setInterval(() => {
+      if (cancelled) return clearInterval(watchdog);
+      if (!document.body.contains(root)) { cancelled = true; clearInterval(watchdog); }
+    }, 500);
 
-      letters.forEach(l => {
-        // Frozen = letter was clicked; CSS animation owns its transform now.
-        // Settled = letter has reached the rest line, no need to keep updating.
-        if (l.frozen || l.settled) return;
-        l.y += FALL_PX_PER_S * dt;
-        if (l.y >= l.restY) {
-          l.y = l.restY;
-          l.settled = true;
-        }
-        l.el.style.transform = `translate(${l.x}px, ${l.y}px)`;
-      });
-
-      requestAnimationFrame(tick);
-    }
-
-    // Kick off
-    requestAnimationFrame((ts) => {
-      lastTs = ts;
-      pickRound();
-      tick(ts);
-    });
+    pickRound();
   }
 };
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}

@@ -51,6 +51,17 @@ function init() {
     renderHome();
   }
 
+  // "Let's Start" button — defaults primary language to English.
+  // Kid/parent can switch later via 🌐 button on home (which re-shows lang screen).
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) {
+    startBtn.onclick = () => {
+      Audio.arm();
+      Storage.setLanguage(startBtn.dataset.lang || 'en');
+      renderHome();
+    };
+  }
+  // Backwards-compat: if old .lang-btn elements still exist, wire them too.
   document.querySelectorAll('#lang-screen .lang-btn').forEach(btn => {
     btn.onclick = () => {
       Audio.arm();
