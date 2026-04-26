@@ -159,15 +159,23 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
       Audio.speak(top, 'en');
       Audio.correct();
 
+      // Animate the matched tiles fading + shrinking before we mutate the grid
+      cells.forEach(k => {
+        const [r, c] = k.split(',').map(Number);
+        const el = stage.querySelector(`.crush-tile[data-r="${r}"][data-c="${c}"]`);
+        if (el) el.classList.add('clearing');
+      });
+      await sleep(260);
+
       cells.forEach(k => {
         const [r, c] = k.split(',').map(Number);
         grid[r][c] = null;
       });
       render();
-      await sleep(280);
+      await sleep(60);
       cascade();
       render();
-      await sleep(180);
+      await sleep(160);
     }
     busy = false;
     checkEnd();
@@ -179,21 +187,10 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
     if (selected.r === r && selected.c === c) { selected = null; render(); return; }
     const adj = Math.abs(selected.r - r) + Math.abs(selected.c - c) === 1;
     if (!adj) { selected = { r, c }; render(); return; }
-
-    const a = selected, b = { r, c };
-    swap(a, b);
-    if (findMatches().size === 0) {
-      swap(a, b);
-      Audio.wrong();
-      shake(a); shake(b);
-      selected = null;
-      render();
-      return;
-    }
-    movesLeft--;
+    const from = selected;
     selected = null;
-    render();
-    await clearLoop();
+    render();              // clear selection highlight before animating
+    await trySwap(from, { r, c });
   }
 
   function shake(p) {
@@ -202,6 +199,50 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
       el.classList.add('shake');
       setTimeout(() => el.classList.remove('shake'), 400);
     }
+  }
+
+  // Core swap: animate the two tiles toward each other, then commit.
+  // If invalid, animate them back. Used by both drag and tap-tap paths.
+  async function trySwap(a, b) {
+    if (busy) return;
+    busy = true;
+
+    const elA = stage.querySelector(`.crush-tile[data-r="${a.r}"][data-c="${a.c}"]`);
+    const elB = stage.querySelector(`.crush-tile[data-r="${b.r}"][data-c="${b.c}"]`);
+    if (!elA || !elB) { busy = false; return; }
+
+    const rectA = elA.getBoundingClientRect();
+    const rectB = elB.getBoundingClientRect();
+    const dx = rectB.left - rectA.left;
+    const dy = rectB.top - rectA.top;
+
+    // Animate toward neighbour
+    elA.style.zIndex = '5';
+    elB.style.zIndex = '5';
+    elA.style.transition = 'transform 180ms ease';
+    elB.style.transition = 'transform 180ms ease';
+    elA.style.transform = `translate(${dx}px, ${dy}px)`;
+    elB.style.transform = `translate(${-dx}px, ${-dy}px)`;
+    await sleep(180);
+
+    // Test the swap on the data
+    swap(a, b);
+    if (findMatches().size === 0) {
+      // Invalid: swing back, no move spent
+      swap(a, b);
+      Audio.wrong();
+      elA.style.transform = 'translate(0, 0)';
+      elB.style.transform = 'translate(0, 0)';
+      await sleep(180);
+      busy = false;
+      return;
+    }
+
+    // Valid swap — commit + cascade. render() rebuilds the DOM,
+    // so the in-flight inline transforms get cleared automatically.
+    movesLeft--;
+    render();
+    await clearLoop();
   }
 
   function checkEnd() {
@@ -239,15 +280,83 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
           return `<button class="crush-tile${sel}" data-r="${r}" data-c="${c}" style="${style}">${L}</button>`;
         }).join('')).join('')}
       </div>
-      <div class="crush-hint">Tap two side-by-side letters to swap. Make 3 in a row to clear!</div>
+      <div class="crush-hint">Drag a letter onto its neighbour. Make 3 in a row to clear!</div>
     `;
+    // Tap-to-select fallback for kids who don't drag — same UX as before
     stage.querySelectorAll('.crush-tile[data-r]').forEach(btn => {
-      btn.onclick = () => tap(parseInt(btn.dataset.r, 10), parseInt(btn.dataset.c, 10));
+      btn.onclick = () => {
+        // Suppress click that follows a successful drag (set in pointerup below)
+        if (suppressClick) { suppressClick = false; return; }
+        tap(parseInt(btn.dataset.r, 10), parseInt(btn.dataset.c, 10));
+      };
     });
   }
+
+  // ---------- drag-to-swap (Pointer Events: covers iOS + Android + mouse) ----------
+  // Uses event delegation on the stage so a single set of listeners survives
+  // every render() that recreates the grid DOM.
+  const DRAG_THRESHOLD = 12; // px before we commit to a swipe direction
+
+  let drag = null;
+  let suppressClick = false;
+
+  function getCellFromEvent(e) {
+    const tile = e.target.closest?.('.crush-tile[data-r]');
+    if (!tile) return null;
+    return {
+      r: parseInt(tile.dataset.r, 10),
+      c: parseInt(tile.dataset.c, 10),
+      el: tile
+    };
+  }
+
+  function onPointerDown(e) {
+    if (busy) return;
+    const cell = getCellFromEvent(e);
+    if (!cell) return;
+    drag = { startX: e.clientX, startY: e.clientY, r: cell.r, c: cell.c, moved: false };
+    try { cell.el.setPointerCapture?.(e.pointerId); } catch {}
+  }
+
+  function onPointerMove(e) {
+    if (!drag || drag.moved) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+    if (adx < DRAG_THRESHOLD && ady < DRAG_THRESHOLD) return;
+
+    drag.moved = true;
+    suppressClick = true;
+    let dr = 0, dc = 0;
+    if (adx > ady) dc = dx > 0 ? 1 : -1;
+    else            dr = dy > 0 ? 1 : -1;
+
+    const target = { r: drag.r + dr, c: drag.c + dc };
+    const start  = { r: drag.r, c: drag.c };
+    drag = null;
+
+    if (target.r < 0 || target.r >= ROWS || target.c < 0 || target.c >= COLS) return;
+    selected = null;
+    trySwap(start, target);
+  }
+
+  function onPointerEnd() { drag = null; }
+
+  // AbortController lets a re-entered Crush level cleanly drop old listeners
+  // (start() is called fresh each time we route in).
+  abortCtrl?.abort();
+  abortCtrl = new AbortController();
+  const sig = abortCtrl.signal;
+  stage.addEventListener('pointerdown',   onPointerDown, { signal: sig });
+  stage.addEventListener('pointermove',   onPointerMove, { signal: sig });
+  stage.addEventListener('pointerup',     onPointerEnd,  { signal: sig });
+  stage.addEventListener('pointercancel', onPointerEnd,  { signal: sig });
 
   init();
   render();
 }
+
+// Module-level so successive runCrush calls can abort the previous listener set
+let abortCtrl;
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
