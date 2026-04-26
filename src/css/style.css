@@ -667,13 +667,46 @@ body::before {
 .ct-diff-desc { font-size: 11px; color: var(--ink-soft); text-align: center; }
 
 .ct-hud { display: flex; gap: 8px; justify-content: space-between; }
+.ct-prompt-area {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 170px;
+}
 .ct-circle {
   width: 160px; height: 160px;
   border-radius: 50%;
-  margin: 8px auto;
   box-shadow: 0 8px 24px rgba(45, 42, 74, 0.15), inset 0 -8px 0 rgba(0,0,0,0.08);
-  border: 4px solid white;
   outline: 2px solid var(--line);
+}
+.ct-word-prompt {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: 64px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.06);
+  line-height: 1;
+}
+
+.ct-options.circles {
+  grid-template-columns: repeat(4, 1fr);
+}
+.ct-options.circles.four { grid-template-columns: repeat(4, 1fr); }
+.ct-circle-opt {
+  width: 100%; aspect-ratio: 1;
+  border: none; border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.18), inset 0 -4px 0 rgba(0,0,0,0.10);
+  transition: transform 0.12s, box-shadow 0.12s;
+  padding: 0;
+}
+.ct-circle-opt:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.18); }
+.ct-circle-opt.right {
+  outline: 4px solid var(--good); outline-offset: 4px;
+  animation: pop 0.32s ease;
+}
+.ct-circle-opt.wrong {
+  outline: 4px solid var(--bad); outline-offset: 4px;
+  animation: shake 0.4s ease;
 }
 
 .ct-timer-track {
