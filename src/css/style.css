@@ -139,6 +139,17 @@ body::before {
 .chip-row {
   display: flex; flex-wrap: wrap; gap: 8px;
 }
+/* Age chips: lock to 4-column grid (4×2) for a cleaner, balanced look */
+#pf-ages {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+#pf-ages .age-chip {
+  width: 100%;
+  padding: 14px 0;
+  text-align: center;
+}
 .age-chip, .gender-chip {
   flex: 0 1 auto; min-width: 50px;
   padding: 12px 14px;
