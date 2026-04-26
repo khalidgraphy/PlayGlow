@@ -5,7 +5,7 @@
 import { renderNames, bindSpeakers, escape } from '../engine.js';
 
 export const level2 = {
-  id: 4,
+  id: 5,
   name: 'Three Names',
   emoji: '👀',
   desc: 'See, hear, learn',

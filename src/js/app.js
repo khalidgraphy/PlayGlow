@@ -1,12 +1,12 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { runLevel, runCustomLevel, showScreen } from './engine.js';
-import { openExplore } from './explore.js';
-import { level1 as hearTap }      from './levels/level1.js';   // id 2
-import { level2 as threeNames }   from './levels/level2.js';   // id 4
-import { level3 as firstLetter }  from './levels/level3.js';   // id 5
-import { level4 as spellIt }      from './levels/level4.js';   // id 3 (promoted)
-import { level5 as matchTrans }   from './levels/level5.js';   // id 6
+import { wordFinder }             from './levels/wordfinder.js'; // id 2
+import { level1 as hearTap }      from './levels/level1.js';     // id 3
+import { level4 as spellIt }      from './levels/level4.js';     // id 4
+import { level2 as threeNames }   from './levels/level2.js';     // id 5
+import { level3 as firstLetter }  from './levels/level3.js';     // id 6
+import { level5 as matchTrans }   from './levels/level5.js';     // id 7
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -21,13 +21,12 @@ const LEVEL1_PARENT = {
   parent: true
 };
 
-// Display order on home — matches numeric id sequence (1, 2, 3, 4, 5, 6)
-const HOME_LEVELS = [LEVEL1_PARENT, hearTap, spellIt, threeNames, firstLetter, matchTrans];
-// Routing lookup: parent + sub-levels + learning levels
-const ALL_LEVELS = [LEVEL1_PARENT, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans];
+// Display order on home — matches numeric id sequence (1, 2, 3, 4, 5, 6, 7)
+const HOME_LEVELS = [LEVEL1_PARENT, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans];
+// Routing lookup: parent + sub-levels + everything
+const ALL_LEVELS = [LEVEL1_PARENT, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans];
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
-const EXPLORE_GUIDE = 'Child taps any letter A–Z to see up to 3 words starting with it, with picture and pronunciation in 3 languages.';
 
 export function showInfo(title, text) {
   document.getElementById('info-title').textContent = title;
@@ -59,7 +58,6 @@ function init() {
 
   document.getElementById('lang-switch').onclick = () => showScreen('lang-screen');
   document.getElementById('back-home').onclick = () => renderHome();
-  document.getElementById('explore-back').onclick = () => renderHome();
   document.getElementById('subs-back').onclick = () => renderHome();
   document.getElementById('subs-info').onclick = () =>
     showInfo('Level 1: ABC Crush', LEVEL1_PARENT.guide);
@@ -122,24 +120,6 @@ function renderHome() {
     };
   });
 
-  const exploreCard = document.getElementById('open-explore');
-  if (exploreCard) {
-    if (!exploreCard.querySelector('.info-btn')) {
-      const btn = document.createElement('button');
-      btn.className = 'info-btn corner';
-      btn.setAttribute('aria-label', 'How to play');
-      btn.textContent = 'i';
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        showInfo('Word Finder', EXPLORE_GUIDE);
-      };
-      exploreCard.appendChild(btn);
-    }
-    exploreCard.onclick = () => {
-      Audio.arm();
-      openExplore();
-    };
-  }
   showScreen('home-screen');
 }
 
