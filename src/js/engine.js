@@ -130,11 +130,16 @@ export function runCustomLevel(level, { onExit }) {
 }
 
 // Helper a custom level can call to show the standard done-screen.
+// Wraps onAgain to FIRST switch back to #game-screen — without this, calling
+// level.start(stage, ...) writes into a hidden #stage and the game restarts
+// invisibly under the still-visible done-screen ("Play Again does nothing").
 export function showDone({ title, stars = 0, summary = '', onAgain, onNext, onHome }) {
   document.getElementById('done-title').textContent = title || 'Nice!';
   document.getElementById('done-stars').textContent = '⭐'.repeat(Math.max(0, stars)) || '✨';
   document.getElementById('done-summary').textContent = summary;
-  document.getElementById('done-again').onclick = onAgain || (() => {});
+  document.getElementById('done-again').onclick = onAgain
+    ? () => { showScreen('game-screen'); onAgain(); }
+    : (() => {});
   document.getElementById('done-next').onclick   = onNext  || (() => {});
   document.getElementById('done-home').onclick   = onHome  || (() => {});
   // Restore engine score-pill visibility for next regular level

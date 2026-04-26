@@ -150,6 +150,11 @@ body::before {
   padding: 14px 0;
   text-align: center;
 }
+
+/* Gender chips: center the row */
+#pf-genders {
+  justify-content: center;
+}
 .age-chip, .gender-chip {
   flex: 0 1 auto; min-width: 50px;
   padding: 12px 14px;
