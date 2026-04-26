@@ -1,7 +1,7 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { runLevel, runCustomLevel, showScreen } from './engine.js';
-import { cloudABC }               from './games/cloudabc.js';       // id 2 (NEW)
+import { colorTrap }              from './games/colortrap.js';      // id 2 (Stroop game)
 import { wordFinder }             from './levels/wordfinder.js';    // id 3
 import { level1 as hearTap }      from './levels/level1.js';        // id 4
 import { level4 as spellIt }      from './levels/level4.js';        // id 5
@@ -25,9 +25,9 @@ const LEVEL1_PARENT = {
 };
 
 // Display order on home — matches numeric id sequence (1..10)
-const HOME_LEVELS = [LEVEL1_PARENT, cloudABC, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
+const HOME_LEVELS = [LEVEL1_PARENT, colorTrap, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, cloudABC, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
+const ALL_LEVELS = [LEVEL1_PARENT, colorTrap, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 

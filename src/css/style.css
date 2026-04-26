@@ -594,7 +594,91 @@ body::before {
   font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', sans-serif;
 }
 
-/* ---------- Cloud ABC (Activity 2) ---------- */
+/* ---------- Color Trap (Activity 2) ---------- */
+.ct-root { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.ct-pick-title {
+  font-size: 18px; font-weight: 700; text-align: center; color: var(--ink);
+  margin-top: 4px;
+}
+.ct-difficulty-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.ct-diff-card {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex; flex-direction: column; gap: 4px; align-items: center;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.15s;
+}
+.ct-diff-card:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(45,42,74,0.18); }
+.ct-diff-card.recommended { border-color: var(--primary); box-shadow: var(--shadow-btn), 0 0 0 4px rgba(108, 92, 231, 0.12); }
+.ct-diff-name { font-size: 16px; font-weight: 700; color: var(--ink); }
+.ct-diff-desc { font-size: 11px; color: var(--ink-soft); text-align: center; }
+
+.ct-hud { display: flex; gap: 8px; justify-content: space-between; }
+.ct-circle {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  margin: 8px auto;
+  box-shadow: 0 8px 24px rgba(45, 42, 74, 0.15), inset 0 -8px 0 rgba(0,0,0,0.08);
+  border: 4px solid white;
+  outline: 2px solid var(--line);
+}
+
+.ct-timer-track {
+  width: 100%; height: 10px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ct-timer-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--good), #8BC34A);
+  border-radius: 999px;
+}
+.ct-timer-fill.warn {
+  background: linear-gradient(90deg, var(--bad), #FF8A8A);
+  animation: ct-warn-pulse 0.6s ease-in-out infinite;
+}
+@keyframes ct-warn-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+.ct-options {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  margin-top: 4px;
+}
+.ct-options.four { grid-template-columns: 1fr 1fr; }
+.ct-option {
+  background: white;
+  border: 2.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 16px 8px;
+  font-family: 'Fredoka', sans-serif; font-weight: 700;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.12s, box-shadow 0.12s, background 0.2s, border-color 0.2s;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+}
+.ct-option:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(45,42,74,0.18); }
+.ct-option.right {
+  background: #E8F8EF;
+  border-color: var(--good);
+  animation: pop 0.32s ease;
+}
+.ct-option.wrong {
+  background: #FFE0E0;
+  border-color: var(--bad);
+  animation: shake 0.4s ease;
+}
+
+/* ---------- Cloud ABC (legacy CSS — game removed but rules left for safety) ---------- */
 .cloudabc-root {
   display: flex; flex-direction: column; gap: 10px; flex: 1;
 }
