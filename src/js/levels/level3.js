@@ -1,14 +1,14 @@
-// Level 3: First Letter (age 6)
-// Show emoji + 3 names + audio. Per round, ONE language is quizzed:
+// Activity 7: First Letter (age 6)
+// Show emoji + 2 names + audio. Per round, one language is quizzed:
 // "Tap the first letter of <word>" — 4 options.
-// Languages rotate across rounds in [primary, then the other 2].
-// One score event per round (right=+1 or wrong=-1, after either correct tap or 2nd wrong).
+// Rotation honors the active secondary language (Urdu by default, Arabic
+// if turned on in Settings) — never quizzes both UR and AR in the same
+// session, only EN ↔ active secondary.
 
 import { Audio } from '../audio.js';
+import { Storage } from '../storage.js';
 import { firstLetter, letterChoices } from '../alphabets.js';
 import { renderNames, bindSpeakers, escape } from '../engine.js';
-
-const LANG_ORDER = ['en', 'ur', 'ar'];
 
 export const level3 = {
   id: 7,
@@ -16,16 +16,17 @@ export const level3 = {
   emoji: '🔤',
   desc: 'Tap the first letter',
   ageHint: 'Age 6+',
-  guide: 'Child reads or hears a word and taps its first letter from 4 options. Languages rotate each round.',
+  guide: 'Child reads or hears a word and taps its first letter from 4 options. Alternates English and the active secondary language each round.',
   altCount: 0,
-  roundsPerSession: 9,
+  roundsPerSession: 8,            // even count for clean en/secondary split
   scoring: { right: 1, wrong: -1 },
 
   _rotation: 0,
 
-  render(stage, { round, lang, onAnswer }) {
-    const order = [lang, ...LANG_ORDER.filter(l => l !== lang)];
-    const quizLang = order[this._rotation % 3];
+  render(stage, { round, onAnswer }) {
+    const sec = Storage.getSecondaryLang();
+    // Alternate EN ↔ secondary per round (no third language)
+    const quizLang = this._rotation % 2 === 0 ? 'en' : sec;
     this._rotation += 1;
 
     const word = round.target[quizLang];

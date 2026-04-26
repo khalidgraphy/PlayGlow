@@ -155,12 +155,14 @@ export function toast(msg, kind = '') {
   setTimeout(() => el.remove(), 1500);
 }
 
-// Generic helper: render the "three names with speakers" block
+// Generic helper: render the "names with speakers" block.
+// Honors active secondary language (Storage.getSecondaryLang): only shows
+// English + the active secondary (Urdu OR Arabic), never both.
 export function renderNames(round) {
+  const sec = Storage.getSecondaryLang();
   const items = [
     { lang: 'en', text: round.target.en, rtl: false },
-    { lang: 'ur', text: round.target.ur, rtl: true },
-    { lang: 'ar', text: round.target.ar, rtl: true }
+    { lang: sec, text: round.target[sec], rtl: true }
   ];
   return `
     <div class="names-stack">
