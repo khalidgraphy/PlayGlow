@@ -1,60 +1,56 @@
-// speechSynthesis is fragile across browsers. Known landmines:
-// - cancel() then speak() in same tick = WebKit drops the speak() (Safari/macOS bug)
-// - voices load async; getVoices() returns [] before 'voiceschanged' fires
-// - iOS needs a user-gesture-initiated speak() to unlock; silent utterance trick
-//   works on iOS but is unreliable on macOS Safari (just call directly instead)
-// - Chrome desktop kills speech after ~15s; harmless for short words
+// speechSynthesis cross-browser landmines:
+// - iOS Safari: needs synth.speak() called inside a user-gesture call stack
+//   to unlock the engine. Audio.arm() handles this.
+// - macOS Safari/Chrome: speak() can fire without a gesture, BUT
+//   `cancel(); speak();` in the same tick silently drops the speak (WebKit race).
+//   AND wrapping speak() in setTimeout breaks user-gesture context, which some
+//   builds of macOS Chrome treat as if no gesture happened.
+// - Strategy: if nothing is currently speaking, fire SYNCHRONOUSLY (preserves
+//   gesture). Only use setTimeout(60) when we actually need to cancel something.
+// - Don't wait on a voices-loaded promise: getVoices() returns the system's
+//   sync list on macOS; iOS works with no voice (browser picks default per lang).
 
 const LANG_CODE = { en: 'en-US', ar: 'ar-SA', ur: 'ur-PK' };
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 
-let voicesReady = false;
-let voicesPromise = null;
-
-function loadVoices() {
-  if (voicesReady) return Promise.resolve(synth.getVoices());
-  if (voicesPromise) return voicesPromise;
-  voicesPromise = new Promise(resolve => {
-    const tryNow = () => {
-      const v = synth.getVoices();
-      if (v && v.length) { voicesReady = true; resolve(v); return true; }
-      return false;
-    };
-    if (tryNow()) return;
-    const handler = () => { if (tryNow()) synth.removeEventListener?.('voiceschanged', handler); };
-    synth.addEventListener?.('voiceschanged', handler);
-    setTimeout(() => { tryNow(); resolve(synth.getVoices() || []); }, 1500);
-  });
-  return voicesPromise;
+function pickVoice(langCode) {
+  const voices = synth?.getVoices?.() || [];
+  if (!voices.length) return null;
+  return voices.find(v => v.lang === langCode)
+      || voices.find(v => v.lang.toLowerCase().startsWith(langCode.split('-')[0]))
+      || null;
 }
 
-function pickVoice(voices, langCode) {
-  if (!voices || !voices.length) return null;
-  const exact = voices.find(v => v.lang === langCode);
-  if (exact) return exact;
-  const prefix = langCode.split('-')[0];
-  return voices.find(v => v.lang.toLowerCase().startsWith(prefix)) || null;
-}
-
-async function speakNow(text, langCode) {
-  if (!synth || !text) return;
-  const voices = await loadVoices();
+function buildUtterance(text, langCode) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = langCode;
   u.rate = 0.85;
   u.pitch = 1.05;
   u.volume = 1;
-  const v = pickVoice(voices, langCode);
+  const v = pickVoice(langCode);
   if (v) u.voice = v;
-  // Safari/macOS race: must yield a tick after cancel before speak() registers.
-  if (synth.speaking || synth.pending) synth.cancel();
-  setTimeout(() => synth.speak(u), 60);
+  return u;
+}
+
+function speakNow(text, langCode) {
+  if (!synth || !text) return;
+
+  // Currently speaking: must cancel + wait one tick (WebKit race).
+  // This path is rare in practice; user usually taps with gaps.
+  if (synth.speaking || synth.pending) {
+    synth.cancel();
+    setTimeout(() => synth.speak(buildUtterance(text, langCode)), 60);
+    return;
+  }
+
+  // Common path: speak synchronously inside the user gesture's call stack.
+  // This is what makes macOS Chrome / Safari actually produce sound.
+  synth.speak(buildUtterance(text, langCode));
 }
 
 export const Audio = {
-  // MUST be called synchronously inside a user gesture handler (click/tap).
-  // iOS Safari only unlocks the speech engine if speak() is called within the
-  // gesture's call stack — no setTimeout, no awaited promise.
+  // MUST be called synchronously inside a user gesture handler.
+  // Unlocks iOS speech engine. Harmless on macOS (volume 0, brief silent utterance).
   arm() {
     if (!synth) return;
     try {
@@ -67,31 +63,19 @@ export const Audio = {
 
   speak(text, lang) {
     if (!synth) return;
-    const langCode = LANG_CODE[lang] || 'en-US';
-    speakNow(text, langCode);
+    speakNow(text, LANG_CODE[lang] || 'en-US');
   },
 
   speakSequence(items, gapMs = 250) {
     if (!synth || !items?.length) return;
     if (synth.speaking || synth.pending) synth.cancel();
     let delay = 60;
-    items.forEach(({ text, lang }, i) => {
-      setTimeout(() => {
-        loadVoices().then(voices => {
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = LANG_CODE[lang] || 'en-US';
-          u.rate = 0.85;
-          const v = pickVoice(voices, u.lang);
-          if (v) u.voice = v;
-          synth.speak(u);
-        });
-      }, delay);
-      // estimate ~80ms per char + gap; very rough but stops queue piling
+    items.forEach(({ text, lang }) => {
+      setTimeout(() => synth.speak(buildUtterance(text, LANG_CODE[lang] || 'en-US')), delay);
       delay += Math.max(800, text.length * 80) + gapMs;
     });
   },
 
-  // tone feedback (always available after first user gesture)
   beep({ freq, duration = 0.15, type = 'sine', gain = 0.25 }) {
     try {
       const ctx = beep._ctx ||= new (window.AudioContext || window.webkitAudioContext)();
@@ -121,5 +105,9 @@ export const Audio = {
   }
 };
 
-// Kick off voices loading immediately
-if (synth) loadVoices();
+// Some browsers populate voices async — touching getVoices() early helps,
+// but we never block on it.
+if (synth) {
+  synth.getVoices();
+  synth.addEventListener?.('voiceschanged', () => synth.getVoices());
+}
