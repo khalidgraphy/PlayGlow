@@ -2,7 +2,7 @@
 // Prod: hit the deployed Worker (CORS allows *.pages.dev)
 const BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
   ? '/api'
-  : 'https://wordglow-api.khalidgraphy.workers.dev/api';
+  : 'https://playglow-api.khalidgraphy.workers.dev/api';
 
 export const API = {
   async getRound(altCount = 5) {
