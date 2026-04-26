@@ -20,7 +20,7 @@ function init() {
 
   document.querySelectorAll('#lang-screen .lang-btn').forEach(btn => {
     btn.onclick = () => {
-      Audio.speak(' ', btn.dataset.lang); // arm speech engine on first gesture
+      Audio.arm(); // unlock speech engine inside the user gesture
       Storage.setLanguage(btn.dataset.lang);
       renderHome();
     };
@@ -48,7 +48,7 @@ function renderHome() {
         <div class="lvl-desc">${lvl.desc}</div>
         <div class="lvl-meta">
           <span>${lvl.ageHint}</span>
-          <span>${s.high ? '★ ' + s.high : ''}</span>
+          <span class="best">${s.high ? '★ ' + s.high : ''}</span>
         </div>
       </div>
     `;
@@ -62,8 +62,8 @@ function renderHome() {
 function start(id) {
   const lvl = LEVELS.find(l => l.id === id);
   if (!lvl) return;
+  Audio.arm(); // re-unlock speech inside this user gesture (works across all levels)
   Storage.setLastLevel(id);
-  // Reset rotation state for levels that use it
   if ('_rotation' in lvl) lvl._rotation = 0;
   runLevel(lvl, { onExit: handleExit(id) });
 }

@@ -71,7 +71,7 @@ function handleAnswer(correct, opts = {}) {
     Audio.wrong();
   }
   updateScoreUI(active.score);
-  toast(correct ? `+${active.level.scoring.right}` : `${active.level.scoring.wrong}`);
+  toast(correct ? `+${active.level.scoring.right} ⭐` : `${active.level.scoring.wrong}`, correct ? 'good' : 'bad');
 
   // Round advance is the level's responsibility — caller can pass advance:true to skip
   if (opts.advance !== false) {
@@ -117,9 +117,9 @@ export function showScreen(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
-export function toast(msg) {
+export function toast(msg, kind = '') {
   const el = document.createElement('div');
-  el.className = 'toast';
+  el.className = 'toast' + (kind ? ' ' + kind : '');
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1500);
