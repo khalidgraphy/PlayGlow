@@ -456,8 +456,18 @@ body::before {
 
 
 .crush-hud {
-  display: flex; gap: 8px; justify-content: space-between;
+  display: flex; gap: 8px; justify-content: space-between; align-items: stretch;
 }
+.hud-shuffle {
+  background: var(--primary); color: white; border: none;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-family: inherit; font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--primary-dark);
+  display: flex; align-items: center; justify-content: center;
+}
+.hud-shuffle:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--primary-dark); }
 .hud-pill {
   flex: 1;
   background: var(--surface);

@@ -9,6 +9,7 @@
 
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
+import { toast } from '../engine.js';
 
 const ROWS = 7, COLS = 6;
 
@@ -111,13 +112,61 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
   function init() {
     grid = Array.from({ length: ROWS }, () =>
       Array.from({ length: COLS }, () => rndLetter()));
-    let safety = 0;
-    while (findMatches().size && safety++ < 30) {
-      findMatches().forEach(k => {
-        const [r, c] = k.split(',').map(Number);
-        grid[r][c] = rndLetter();
-      });
+    ensurePlayable();
+  }
+
+  // Try every possible adjacent swap; return true if any creates a match.
+  function hasMove() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (c + 1 < COLS) {
+          swap({ r, c }, { r, c: c + 1 });
+          const ok = findMatches().size > 0;
+          swap({ r, c }, { r, c: c + 1 });
+          if (ok) return true;
+        }
+        if (r + 1 < ROWS) {
+          swap({ r, c }, { r: r + 1, c });
+          const ok = findMatches().size > 0;
+          swap({ r, c }, { r: r + 1, c });
+          if (ok) return true;
+        }
+      }
     }
+    return false;
+  }
+
+  // Re-roll cells until the board is both match-free AND has at least one move.
+  // Fall back to a full re-randomise if stuck after many tries (rare).
+  function ensurePlayable() {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      let safety = 0;
+      while (findMatches().size && safety++ < 30) {
+        findMatches().forEach(k => {
+          const [r, c] = k.split(',').map(Number);
+          grid[r][c] = rndLetter();
+        });
+      }
+      if (hasMove()) return;
+      // No moves: full re-randomise and retry
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++) grid[r][c] = rndLetter();
+    }
+  }
+
+  function shuffleBoard() {
+    // Collect existing letters, shuffle, redistribute — preserves the pack
+    const all = [];
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) if (grid[r][c]) all.push(grid[r][c]);
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    let i = 0;
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++) grid[r][c] = all[i++] || rndLetter();
+    ensurePlayable();
   }
 
   function swap(a, b) {
@@ -177,8 +226,27 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
       render();
       await sleep(160);
     }
+    // After everything settles, make sure at least one move exists.
+    // If not, gently auto-shuffle so the kid is never stuck.
+    if (!hasMove() && movesLeft > 0) {
+      toast('No moves left — shuffling!', 'good');
+      await sleep(900);
+      shuffleBoard();
+      render();
+    }
     busy = false;
     checkEnd();
+  }
+
+  // Manual shuffle (HUD button). Free, no penalty — kid-friendly.
+  async function manualShuffle() {
+    if (busy) return;
+    busy = true;
+    toast('Shuffling…', 'good');
+    await sleep(300);
+    shuffleBoard();
+    render();
+    busy = false;
   }
 
   async function tap(r, c) {
@@ -270,6 +338,7 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
         <div class="hud-pill"><span class="hud-label">SCORE</span><span class="hud-value">${score}</span></div>
         <div class="hud-pill target"><span class="hud-label">TARGET</span><span class="hud-value">${target}</span></div>
         <div class="hud-pill ${movesLeft <= 5 ? 'warn' : ''}"><span class="hud-label">MOVES</span><span class="hud-value">${movesLeft}</span></div>
+        <button class="hud-shuffle" id="shuffle-btn" aria-label="Shuffle board" title="Shuffle">🔀</button>
       </div>
       <div class="crush-grid" style="grid-template-columns:repeat(${COLS}, 1fr)">
         ${grid.map((row, r) => row.map((L, c) => {
@@ -280,16 +349,17 @@ function runCrush({ stage, onExit, showDone, letters, moves, target, level }) {
           return `<button class="crush-tile${sel}" data-r="${r}" data-c="${c}" style="${style}">${L}</button>`;
         }).join('')).join('')}
       </div>
-      <div class="crush-hint">Drag a letter onto its neighbour. Make 3 in a row to clear!</div>
+      <div class="crush-hint">Drag or tap two side-by-side letters. Make 3 in a row to clear. Stuck? Tap 🔀.</div>
     `;
     // Tap-to-select fallback for kids who don't drag — same UX as before
     stage.querySelectorAll('.crush-tile[data-r]').forEach(btn => {
       btn.onclick = () => {
-        // Suppress click that follows a successful drag (set in pointerup below)
         if (suppressClick) { suppressClick = false; return; }
         tap(parseInt(btn.dataset.r, 10), parseInt(btn.dataset.c, 10));
       };
     });
+    const sBtn = stage.querySelector('#shuffle-btn');
+    if (sBtn) sBtn.onclick = manualShuffle;
   }
 
   // ---------- drag-to-swap (Pointer Events: covers iOS + Android + mouse) ----------
