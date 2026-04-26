@@ -87,6 +87,20 @@ body::before {
 
 [dir="rtl"], .rtl { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', 'Fredoka', sans-serif; }
 
+/* ---------- Brand logo ---------- */
+.brand-logo {
+  width: 220px; max-width: 70%;
+  height: auto; aspect-ratio: 1;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.brand-logo-sm {
+  width: 56px; max-width: 56px;
+  margin: 0 auto;
+}
+
 /* ---------- Language picker ---------- */
 #lang-screen { justify-content: center; align-items: center; gap: 24px; padding: 36px 24px; }
 #lang-screen h1 {
