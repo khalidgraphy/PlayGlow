@@ -16,6 +16,7 @@ export const level3 = {
   emoji: '🔤',
   desc: 'Tap the first letter',
   ageHint: 'Age 6+',
+  guide: 'Child reads or hears a word and taps its first letter from 4 options. Languages rotate each round.',
   altCount: 0,
   roundsPerSession: 9,
   scoring: { right: 1, wrong: -1 },

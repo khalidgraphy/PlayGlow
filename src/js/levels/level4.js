@@ -13,6 +13,7 @@ export const level4 = {
   emoji: '✏️',
   desc: 'Tap letters to spell',
   ageHint: 'Age 7+',
+  guide: 'Child sees a picture, hears the word, and taps the jumbled letters in the correct order to spell it.',
   altCount: 0,
   roundsPerSession: 6,
   scoring: { right: 2, wrong: -1 },

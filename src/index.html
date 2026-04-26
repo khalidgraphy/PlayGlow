@@ -58,6 +58,7 @@
           <div id="game-title" class="game-title">Level</div>
           <div id="game-subtitle" class="game-subtitle"></div>
         </div>
+        <button id="game-info" class="info-btn" aria-label="How to play">i</button>
         <div class="score-pill">
           <span id="round-score">0</span>
           <span class="score-label">pts</span>
@@ -92,6 +93,21 @@
       </div>
     </section>
 
+    <footer class="app-footer">
+      <a href="https://fb.com/Khalidgraphy" target="_blank" rel="noopener">by Khalidgraphy</a>
+      <span class="dot">·</span>
+      <a href="https://fb.com/helloMeeran" target="_blank" rel="noopener">on demand of Meeran Mir</a>
+    </footer>
+
+  </div>
+
+  <!-- Info popup (hidden by default) -->
+  <div id="info-overlay" class="info-overlay hidden" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true">
+      <div class="info-title" id="info-title">How to play</div>
+      <div class="info-text" id="info-text"></div>
+      <button class="button" id="info-close">Got it</button>
+    </div>
   </div>
 
   <script type="module" src="/js/app.js"></script>

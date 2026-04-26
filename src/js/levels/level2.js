@@ -10,6 +10,7 @@ export const level2 = {
   emoji: '👀',
   desc: 'See, hear, learn',
   ageHint: 'Age 5+',
+  guide: 'Child sees a picture and taps each speaker to hear the word in English, Urdu, and Arabic. No quiz, just exposure.',
   altCount: 0,
   roundsPerSession: 5,
   scoring: { right: 1, wrong: 0 },

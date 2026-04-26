@@ -34,6 +34,7 @@ export const level6 = {
   emoji: '🍬',
   desc: 'Match 3 letters in a row',
   ageHint: 'Age 5+',
+  guide: 'Child swaps two side-by-side letters to make rows of 3 or more same letters; clears earn points and the letter is spoken aloud.',
   custom: true,
 
   start(stage, { onExit, showDone }) {

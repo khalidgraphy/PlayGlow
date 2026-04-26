@@ -14,6 +14,7 @@ export const level5 = {
   emoji: '🔁',
   desc: 'Find the same word',
   ageHint: 'Age 7+',
+  guide: 'Child sees a word in the main language and picks its meaning from 4 options in another language.',
   altCount: 3,
   roundsPerSession: 8,
   scoring: { right: 1, wrong: -1 },

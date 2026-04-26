@@ -12,6 +12,7 @@ export const level1 = {
   emoji: '👂',
   desc: 'Listen, then tap the picture',
   ageHint: 'Age 4+',
+  guide: 'Child hears the word in the chosen language and taps the matching picture from 6 options.',
   altCount: 5,
   roundsPerSession: 6,
   scoring: { right: 1, wrong: 0 },
