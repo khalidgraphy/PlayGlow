@@ -7,6 +7,8 @@ import { level4 as spellIt }      from './levels/level4.js';     // id 4
 import { level2 as threeNames }   from './levels/level2.js';     // id 5
 import { level3 as firstLetter }  from './levels/level3.js';     // id 6
 import { level5 as matchTrans }   from './levels/level5.js';     // id 7
+import { missingLetter }          from './levels/missingletter.js'; // id 8
+import { dailyWordLevel }         from './levels/dailyword.js';     // id 9
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -21,10 +23,10 @@ const LEVEL1_PARENT = {
   parent: true
 };
 
-// Display order on home — matches numeric id sequence (1, 2, 3, 4, 5, 6, 7)
-const HOME_LEVELS = [LEVEL1_PARENT, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans];
+// Display order on home — matches numeric id sequence (1..9)
+const HOME_LEVELS = [LEVEL1_PARENT, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans];
+const ALL_LEVELS = [LEVEL1_PARENT, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 

@@ -330,6 +330,31 @@ body::before {
   font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', sans-serif;
 }
 
+/* ---------- Missing Letter (Activity 8) ---------- */
+.ml-word {
+  display: flex; gap: 8px; justify-content: center; align-items: center;
+  margin: 4px 0;
+}
+.ml-slot {
+  width: 50px; height: 64px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px; font-weight: 700; color: var(--ink);
+  box-shadow: 0 2px 0 rgba(45,42,74,0.08);
+}
+.ml-slot.empty {
+  border-style: dashed; border-color: var(--accent);
+  color: var(--accent); font-size: 36px;
+  background: #FFF4ED;
+}
+
+/* per-card colors for new activities */
+.level-card[data-id="7"] { --card-color: #2BB673; --card-tint: #E8F8EF; }
+.level-card[data-id="8"] { --card-color: #FF8E1A; --card-tint: #FFF1DE; }
+.level-card[data-id="9"] { --card-color: #4FC3F7; --card-tint: #E1F5FE; }
+
 /* ---------- Spell-it (Level 4) ---------- */
 .spell-target {
   display: flex; gap: 6px; justify-content: center; min-height: 60px;
