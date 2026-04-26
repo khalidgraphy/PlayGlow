@@ -959,6 +959,8 @@ body::before {
 .level-card[data-id="102"] { --card-color: #B57EDC; --card-tint: #F0E8FA; }
 .level-card[data-id="103"] { --card-color: #00A86B; --card-tint: #E0F4EC; }
 .level-card[data-id="104"] { --card-color: #2196F3; --card-tint: #E3F2FD; }
+.level-card[data-id="105"] { --card-color: #00897B; --card-tint: #E0F2F1; }  /* numbers — teal */
+.level-card[data-id="106"] { --card-color: #1F2937; --card-tint: #FFE0E0; }  /* hardest — dark/red accent */
 
 
 .crush-hud {

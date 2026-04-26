@@ -43,7 +43,19 @@ export const COLOR_MAP = {
   W: { name: 'White',       bg: '#FAFAFA', text: '#2D2A4A' },
   X: { name: 'Xanadu',      bg: '#738678', text: '#fff'    },
   Y: { name: 'Yellow',      bg: '#FFEB3B', text: '#3a2d00' },
-  Z: { name: 'Zaffre',      bg: '#0014A8', text: '#fff'    }
+  Z: { name: 'Zaffre',      bg: '#0014A8', text: '#fff'    },
+
+  // Numbers — used by sub-packs 1.5 (0-9) and 1.6 (0-9 + A-Z)
+  '0': { name: 'Navy',    bg: '#002B5C', text: '#fff'    },
+  '1': { name: 'Red',     bg: '#E53935', text: '#fff'    },
+  '2': { name: 'Orange',  bg: '#FB8C00', text: '#3a2d00' },
+  '3': { name: 'Sun',     bg: '#FBC02D', text: '#3a2d00' },
+  '4': { name: 'Green',   bg: '#43A047', text: '#fff'    },
+  '5': { name: 'Teal',    bg: '#00897B', text: '#fff'    },
+  '6': { name: 'Purple',  bg: '#8E24AA', text: '#fff'    },
+  '7': { name: 'Pink',    bg: '#EC407A', text: '#fff'    },
+  '8': { name: 'Brown',   bg: '#6D4C41', text: '#fff'    },
+  '9': { name: 'Indigo',  bg: '#3949AB', text: '#fff'    }
 };
 
 export function makeCrushLevel(cfg) {
