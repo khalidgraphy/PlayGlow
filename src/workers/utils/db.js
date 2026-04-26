@@ -1,3 +1,23 @@
+// Round = 1 target word + N alts, all returned in all 3 languages.
+// Frontend picks what to show per level.
+
+export async function getRandomRound(env, { altCount = 5 } = {}) {
+  const total = altCount + 1;
+  const stmt = env.DB.prepare(
+    `SELECT id, word_en, word_ar, word_ur, emoji, category
+     FROM words
+     ORDER BY RANDOM()
+     LIMIT ?`
+  );
+  const { results } = await stmt.bind(total).all();
+  if (!results || results.length < total) {
+    throw new Error(`only ${results?.length ?? 0} words available, need ${total}`);
+  }
+  const [target, ...alts] = results;
+  return { target, alts };
+}
+
+// Old single-word endpoint still used by /api/words for backward compat.
 export async function getRandomWords(env, { language, difficulty = 1, limit = 6 }) {
   const lang = language === 'ar' ? 'word_ar' : language === 'ur' ? 'word_ur' : 'word_en';
   const stmt = env.DB.prepare(
@@ -17,10 +37,7 @@ export async function getProgress(env, sessionId) {
      FROM progress WHERE session_id = ?`
   ).bind(sessionId).first();
   if (!row) return null;
-  return {
-    ...row,
-    words_completed: safeJSON(row.words_completed, [])
-  };
+  return { ...row, words_completed: safeJSON(row.words_completed, []) };
 }
 
 export async function upsertProgress(env, sessionId, patch) {

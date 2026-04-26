@@ -1,5 +1,6 @@
 import { preflight, json } from './utils/cors.js';
 import { handleWords } from './handlers/words.js';
+import { handleRound } from './handlers/round.js';
 import { handleGetProgress, handlePostProgress } from './handlers/progress.js';
 
 export default {
@@ -15,6 +16,9 @@ export default {
       }
       if (path === '/api/words' && request.method === 'GET') {
         return handleWords(request, env, url);
+      }
+      if (path === '/api/round' && request.method === 'GET') {
+        return handleRound(request, env, url);
       }
       if (path === '/api/progress' && request.method === 'GET') {
         return handleGetProgress(request, env, url);
