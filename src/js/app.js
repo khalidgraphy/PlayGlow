@@ -1,14 +1,15 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { runLevel, runCustomLevel, showScreen } from './engine.js';
-import { wordFinder }             from './levels/wordfinder.js'; // id 2
-import { level1 as hearTap }      from './levels/level1.js';     // id 3
-import { level4 as spellIt }      from './levels/level4.js';     // id 4
-import { level2 as threeNames }   from './levels/level2.js';     // id 5
-import { level3 as firstLetter }  from './levels/level3.js';     // id 6
-import { level5 as matchTrans }   from './levels/level5.js';     // id 7
-import { missingLetter }          from './levels/missingletter.js'; // id 8
-import { dailyWordLevel }         from './levels/dailyword.js';     // id 9
+import { cloudABC }               from './games/cloudabc.js';       // id 2 (NEW)
+import { wordFinder }             from './levels/wordfinder.js';    // id 3
+import { level1 as hearTap }      from './levels/level1.js';        // id 4
+import { level4 as spellIt }      from './levels/level4.js';        // id 5
+import { level2 as threeNames }   from './levels/level2.js';        // id 6
+import { level3 as firstLetter }  from './levels/level3.js';        // id 7
+import { level5 as matchTrans }   from './levels/level5.js';        // id 8
+import { missingLetter }          from './levels/missingletter.js'; // id 9
+import { dailyWordLevel }         from './levels/dailyword.js';     // id 10
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -23,10 +24,10 @@ const LEVEL1_PARENT = {
   parent: true
 };
 
-// Display order on home — matches numeric id sequence (1..9)
-const HOME_LEVELS = [LEVEL1_PARENT, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
+// Display order on home — matches numeric id sequence (1..10)
+const HOME_LEVELS = [LEVEL1_PARENT, cloudABC, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
+const ALL_LEVELS = [LEVEL1_PARENT, cloudABC, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 

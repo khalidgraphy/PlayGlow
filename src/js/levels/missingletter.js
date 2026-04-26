@@ -16,7 +16,7 @@ function pickWord() {
 }
 
 export const missingLetter = {
-  id: 8,
+  id: 9,
   name: 'Missing Letter',
   emoji: '🔡',
   desc: 'Find the missing letter',

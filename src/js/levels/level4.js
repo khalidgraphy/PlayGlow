@@ -32,7 +32,7 @@ function pickWord() {
 }
 
 export const level4 = {
-  id: 4,
+  id: 5,
   name: 'Spell It',
   emoji: '✏️',
   desc: 'Tap letters to spell',

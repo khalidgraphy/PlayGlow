@@ -9,7 +9,7 @@ import { escape } from '../engine.js';
 const OTHER = { en: ['ur', 'ar'], ur: ['en', 'ar'], ar: ['en', 'ur'] };
 
 export const level5 = {
-  id: 7,
+  id: 8,
   name: 'Match Translation',
   emoji: '🔁',
   desc: 'Find the same word',

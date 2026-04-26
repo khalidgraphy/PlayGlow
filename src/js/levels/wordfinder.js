@@ -7,7 +7,7 @@ import { escape } from '../engine.js';
 import { WORDS_BY_LETTER, ALL_LETTERS } from './wordfinderdata.js';
 
 export const wordFinder = {
-  id: 2,
+  id: 3,
   name: 'Word Finder',
   emoji: '🔍',
   desc: 'Tap A–Z to see 3 words',

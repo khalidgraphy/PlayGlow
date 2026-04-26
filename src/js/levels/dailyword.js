@@ -15,7 +15,7 @@ function todayISO() {
 }
 
 export const dailyWordLevel = {
-  id: 9,
+  id: 10,
   name: 'Daily Word',
   emoji: '📅',
   desc: "Today's word in 3 languages",

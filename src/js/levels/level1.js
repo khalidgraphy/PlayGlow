@@ -7,7 +7,7 @@ import { shuffle } from '../alphabets.js';
 import { escape } from '../engine.js';
 
 export const level1 = {
-  id: 3,
+  id: 4,
   name: 'Hear & Tap',
   emoji: '👂',
   desc: 'Listen, then tap the picture',
