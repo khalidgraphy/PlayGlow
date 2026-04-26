@@ -11,6 +11,18 @@ export const API = {
     return r.json();
   },
 
+  async getLetters(lang = 'en') {
+    const r = await fetch(`${BASE}/letters?lang=${lang}`);
+    if (!r.ok) throw new Error('letters fetch failed: ' + r.status);
+    return r.json();
+  },
+
+  async getByLetter(letter, lang = 'en', limit = 3) {
+    const r = await fetch(`${BASE}/by-letter?letter=${encodeURIComponent(letter)}&lang=${lang}&limit=${limit}`);
+    if (!r.ok) throw new Error('by-letter fetch failed: ' + r.status);
+    return r.json();
+  },
+
   async health() {
     try { const r = await fetch(`${BASE}/health`); return r.ok ? r.json() : null; }
     catch { return null; }

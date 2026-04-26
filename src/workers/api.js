@@ -1,6 +1,7 @@
 import { preflight, json } from './utils/cors.js';
 import { handleWords } from './handlers/words.js';
 import { handleRound } from './handlers/round.js';
+import { handleByLetter, handleLetters } from './handlers/explore.js';
 import { handleGetProgress, handlePostProgress } from './handlers/progress.js';
 
 export default {
@@ -19,6 +20,12 @@ export default {
       }
       if (path === '/api/round' && request.method === 'GET') {
         return handleRound(request, env, url);
+      }
+      if (path === '/api/by-letter' && request.method === 'GET') {
+        return handleByLetter(request, env, url);
+      }
+      if (path === '/api/letters' && request.method === 'GET') {
+        return handleLetters(request, env, url);
       }
       if (path === '/api/progress' && request.method === 'GET') {
         return handleGetProgress(request, env, url);

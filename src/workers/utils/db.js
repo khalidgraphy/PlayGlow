@@ -1,3 +1,34 @@
+// Words filtered by first letter in a chosen language.
+// Returns all 3 lang fields for each match (for the cross-language display).
+export async function getWordsByLetter(env, { letter, lang = 'en', limit = 3 }) {
+  const col = lang === 'ar' ? 'word_ar' : lang === 'ur' ? 'word_ur' : 'word_en';
+  // SQLite: GLOB is case-sensitive, LIKE is case-insensitive for ASCII (default).
+  // For non-ASCII (ar/ur) this still works via byte-prefix match since we pass the
+  // raw codepoint as the filter.
+  const stmt = env.DB.prepare(
+    `SELECT id, word_en, word_ar, word_ur, emoji, category
+     FROM words
+     WHERE ${col} LIKE ? || '%'
+     ORDER BY RANDOM()
+     LIMIT ?`
+  );
+  const { results } = await stmt.bind(letter, limit).all();
+  return results || [];
+}
+
+// All distinct first letters present in DB for the given lang (for the picker UI).
+export async function getAvailableLetters(env, { lang = 'en' } = {}) {
+  const col = lang === 'ar' ? 'word_ar' : lang === 'ur' ? 'word_ur' : 'word_en';
+  const stmt = env.DB.prepare(
+    `SELECT DISTINCT UPPER(SUBSTR(${col}, 1, 1)) AS letter, COUNT(*) AS n
+     FROM words
+     GROUP BY letter
+     ORDER BY letter`
+  );
+  const { results } = await stmt.all();
+  return results || [];
+}
+
 // Round = 1 target word + N alts, all returned in all 3 languages.
 // Frontend picks what to show per level.
 

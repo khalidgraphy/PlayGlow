@@ -37,6 +37,17 @@
       </header>
       <h2 class="home-title">Pick a Level</h2>
       <div id="level-grid" class="level-grid"></div>
+
+      <h2 class="home-title" style="margin-top:18px">Explore</h2>
+      <div class="level-grid">
+        <div class="level-card explore-card" id="open-explore" data-id="6">
+          <div class="lvl-num">WORD FINDER</div>
+          <div class="lvl-emoji">🔍</div>
+          <div class="lvl-name">ABC Words</div>
+          <div class="lvl-desc">Pick a letter, see words in 3 languages</div>
+          <div class="lvl-meta"><span>All ages</span><span class="best">∞</span></div>
+        </div>
+      </div>
     </section>
 
     <!-- Generic game shell — each level renders into #stage -->
@@ -53,6 +64,20 @@
         </div>
       </header>
       <div id="stage" class="stage"></div>
+    </section>
+
+    <!-- Explore: letter-driven multilingual word browser -->
+    <section id="explore-screen" class="screen hidden">
+      <header class="game-header">
+        <button id="explore-back" class="icon-btn" aria-label="Back">←</button>
+        <div class="game-title-wrap">
+          <div class="game-title">Word Finder</div>
+          <div class="game-subtitle">Tap a letter to see words</div>
+        </div>
+        <div class="chip" id="explore-letter-current">A</div>
+      </header>
+      <div id="letter-strip" class="letter-strip"></div>
+      <div id="explore-results" class="explore-results"></div>
     </section>
 
     <!-- Round/level complete -->

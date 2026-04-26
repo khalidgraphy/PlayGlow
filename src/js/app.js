@@ -1,6 +1,7 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { runLevel, showScreen } from './engine.js';
+import { openExplore } from './explore.js';
 import { level1 } from './levels/level1.js';
 import { level2 } from './levels/level2.js';
 import { level3 } from './levels/level3.js';
@@ -28,6 +29,7 @@ function init() {
 
   document.getElementById('lang-switch').onclick = () => showScreen('lang-screen');
   document.getElementById('back-home').onclick = () => renderHome();
+  document.getElementById('explore-back').onclick = () => renderHome();
 }
 
 function renderHome() {
@@ -56,6 +58,15 @@ function renderHome() {
   grid.querySelectorAll('.level-card').forEach(card => {
     card.onclick = () => start(parseInt(card.dataset.id, 10));
   });
+
+  // Explore card lives outside the level grid (separate section)
+  const exploreCard = document.getElementById('open-explore');
+  if (exploreCard) {
+    exploreCard.onclick = () => {
+      Audio.arm();
+      openExplore();
+    };
+  }
   showScreen('home-screen');
 }
 
