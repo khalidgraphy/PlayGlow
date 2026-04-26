@@ -3,11 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#667eea" />
+  <meta name="theme-color" content="#7C3AED" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="PlayGlow" />
-  <title>PlayGlow</title>
+
+  <title>PlayGlow — Learning that feels like play | ABC games for kids 4–8</title>
+  <meta name="description" content="PlayGlow is a free, ad-free web app of fun letter and word games for kids aged 4–8. No accounts, no tracking. Learn. Play. Glow." />
+  <meta name="keywords" content="kids alphabet game, ABC for kids, learn to read app, free phonics games, kids learning PWA, ad-free kids app, preschool reading games" />
+  <link rel="canonical" href="https://playglow.pages.dev/" />
+
+  <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://playglow.pages.dev/" />
+  <meta property="og:title" content="PlayGlow — Learn. Play. Glow." />
+  <meta property="og:description" content="Free letter and word games for kids 4–8. No ads. No accounts. Just play." />
+  <meta property="og:image" content="https://playglow.pages.dev/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PlayGlow — Learn. Play. Glow." />
+  <meta name="twitter:description" content="Free ABC games for kids 4–8. No ads. No accounts." />
+  <meta name="twitter:image" content="https://playglow.pages.dev/og-image.png" />
+
+  <!-- Structured data: WebApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "PlayGlow",
+    "description": "Free letter and word games for kids 4–8. Ad-free PWA.",
+    "url": "https://playglow.pages.dev/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Any (PWA)",
+    "audience": { "@type": "PeopleAudience", "suggestedMinAge": 4, "suggestedMaxAge": 8 },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
   <link rel="manifest" href="/manifest.json" />
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
@@ -23,6 +58,7 @@
     <!-- Language picker (first run only — switch later via gear icon on home) -->
     <section id="lang-screen" class="screen hidden">
       <img src="/icons/logo.png" alt="PlayGlow" class="brand-logo" />
+      <p class="tagline">Learning that feels like play.</p>
       <p class="subtitle">Choose your main language</p>
       <div class="language-buttons">
         <button class="lang-btn" data-lang="en">English</button>
@@ -85,9 +121,11 @@
     </section>
 
     <footer class="app-footer">
-      <a href="https://fb.com/Khalidgraphy" target="_blank" rel="noopener">by Khalidgraphy</a>
-      <span class="dot">·</span>
-      <a href="https://fb.com/helloMeeran" target="_blank" rel="noopener">on demand of Meeran Mir</a>
+      <p class="story">
+        Once upon a time, <a href="https://fb.com/helloMeeran" target="_blank" rel="noopener">Meeran</a>
+        asked for a learning-game. So <a href="https://fb.com/Khalidgraphy" target="_blank" rel="noopener">Khalidgraphy</a>
+        made one. ✨
+      </p>
     </footer>
 
   </div>
