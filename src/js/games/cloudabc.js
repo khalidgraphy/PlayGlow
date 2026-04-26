@@ -128,30 +128,62 @@ export const cloudABC = {
     }
 
     function onPick(char, el) {
+      // If this letter is already settled-as-tried, ignore re-tap
+      if (el.dataset.tried === '1') return;
+      // Round-lock only applies to the brief end-of-round window after a CORRECT pick
       if (roundLocked) return;
-      roundLocked = true;
+
       const isRight = char === target;
-      el.classList.add(isRight ? 'pick-right' : 'pick-wrong');
+      const letterObj = letters.find(l => l.el === el);
+
+      // Freeze this letter in place so the rAF loop stops moving it (otherwise
+      // the inline transform we set every frame overrides the CSS animation).
+      if (letterObj) letterObj.frozen = true;
+      el.dataset.tried = '1';
+
       if (isRight) {
-        rights += 1;
+        roundLocked = true;
+        letters.forEach(l => { l.frozen = true; });
+        // Inline animation that respects the letter's current x,y position
+        const lx = letterObj?.x ?? 0;
+        const ly = letterObj?.y ?? 0;
+        el.style.transition = 'transform 0.5s cubic-bezier(.34,1.56,.64,1), opacity 0.5s ease, box-shadow 0.3s ease';
+        el.style.boxShadow = '0 0 0 8px rgba(76, 175, 80, 0.45), 0 4px 0 rgba(0,0,0,0.18)';
+        el.style.transform = `translate(${lx}px, ${ly - 30}px) scale(1.5)`;
+        setTimeout(() => { el.style.opacity = '0'; }, 200);
         Audio.speak(char, 'en');
         Audio.correct();
+        rights += 1;
+        rightEl.textContent = `${rights}/${TARGET_RIGHTS}`;
+        setTimeout(() => {
+          if (cancelled) return;
+          if (rights >= TARGET_RIGHTS) return advance();
+          roundLocked = false;
+          pickRound();
+        }, 900);
       } else {
-        wrongs += 1;
+        // WRONG: don't advance. Disable this letter; others keep falling
+        // and stay tappable. Kid keeps trying until they pick correctly.
+        el.style.pointerEvents = 'none';
+        el.style.transition = 'opacity 0.5s ease, box-shadow 0.3s ease';
+        el.style.boxShadow = '0 0 0 6px rgba(255, 90, 90, 0.5), 0 4px 0 rgba(0,0,0,0.18)';
+        setTimeout(() => {
+          el.style.opacity = '0.35';
+          el.style.boxShadow = '0 4px 0 rgba(0,0,0,0.18), inset 0 -3px 0 rgba(0,0,0,0.10)';
+        }, 350);
         Audio.wrong();
-        // also flash the correct letter
-        const correctEl = letters.find(l => l.char === target)?.el;
-        if (correctEl && correctEl !== el) correctEl.classList.add('pick-right');
+        wrongs += 1;
+        wrongEl.textContent = `${wrongs}/${TARGET_WRONGS}`;
+        if (wrongs >= TARGET_WRONGS) {
+          roundLocked = true;
+          // Highlight the correct letter so kid sees what was right
+          const correctEl = letters.find(l => l.char === target)?.el;
+          if (correctEl) {
+            correctEl.style.boxShadow = '0 0 0 8px rgba(76, 175, 80, 0.5), 0 4px 0 rgba(0,0,0,0.18)';
+          }
+          setTimeout(() => { if (!cancelled) endGame(false); }, 1100);
+        }
       }
-      rightEl.textContent = `${rights}/${TARGET_RIGHTS}`;
-      wrongEl.textContent = `${wrongs}/${TARGET_WRONGS}`;
-      setTimeout(() => {
-        if (cancelled) return;
-        if (rights >= TARGET_RIGHTS) return advance();
-        if (wrongs >= TARGET_WRONGS) return endGame(false);
-        roundLocked = false;
-        pickRound();
-      }, 900);
     }
 
     function advance() {
@@ -192,7 +224,9 @@ export const cloudABC = {
       lastTs = ts;
 
       letters.forEach(l => {
-        if (l.settled) return;
+        // Frozen = letter was clicked; CSS animation owns its transform now.
+        // Settled = letter has reached the rest line, no need to keep updating.
+        if (l.frozen || l.settled) return;
         l.y += FALL_PX_PER_S * dt;
         if (l.y >= l.restY) {
           l.y = l.restY;
