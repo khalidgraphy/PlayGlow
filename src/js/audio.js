@@ -16,19 +16,42 @@ const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 function pickVoice(langCode) {
   const voices = synth?.getVoices?.() || [];
   if (!voices.length) return null;
-  return voices.find(v => v.lang === langCode)
-      || voices.find(v => v.lang.toLowerCase().startsWith(langCode.split('-')[0]))
-      || null;
+
+  // 1. Exact match (e.g. ur-PK)
+  let v = voices.find(v => v.lang === langCode);
+  if (v) return v;
+
+  // 2. Same primary language (e.g. ur-IN if asked for ur-PK)
+  const prefix = langCode.split('-')[0].toLowerCase();
+  v = voices.find(v => v.lang.toLowerCase().startsWith(prefix));
+  if (v) return v;
+
+  // 3. Urdu special-case: many iPhones don't ship a Urdu voice. Fall back to
+  // an Arabic voice — same right-to-left script and most consonants overlap,
+  // so the kid hears something instead of silence. Pronunciation is imperfect
+  // but better than no audio.
+  if (prefix === 'ur') {
+    v = voices.find(v => v.lang === 'ar-SA')
+     || voices.find(v => v.lang.toLowerCase().startsWith('ar'));
+    if (v) return v;
+  }
+
+  return null;
 }
 
 function buildUtterance(text, langCode) {
   const u = new SpeechSynthesisUtterance(text);
-  u.lang = langCode;
   u.rate = 0.85;
   u.pitch = 1.05;
   u.volume = 1;
   const v = pickVoice(langCode);
-  if (v) u.voice = v;
+  if (v) {
+    u.voice = v;
+    // Use the picked voice's actual lang so iOS doesn't second-guess and refuse
+    u.lang = v.lang;
+  } else {
+    u.lang = langCode;
+  }
   return u;
 }
 

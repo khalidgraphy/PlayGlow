@@ -77,6 +77,11 @@ body::before {
   flex-direction: column;
   padding: 22px;
   gap: 16px;
+  /* Make each screen its own scroll container so long content (6+ cards) reaches Levels 5-6 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  min-height: 0; /* allow flex child to actually shrink and scroll */
 }
 .screen.hidden { display: none; }
 
