@@ -1,7 +1,7 @@
 {
-  "name": "wordglow",
+  "name": "playglow",
   "version": "0.1.0",
-  "description": "Mobile-first PWA language learning game (English, Arabic, Urdu)",
+  "description": "Mobile-first PWA learning game for kids (English, Arabic, Urdu)",
   "private": true,
   "scripts": {
     "dev": "vite",

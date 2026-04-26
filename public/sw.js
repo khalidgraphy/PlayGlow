@@ -1,7 +1,7 @@
 // Bump CACHE on any deploy that changes routing/URLs.
 // HTML is network-first so users always get the latest bundle reference;
 // hashed assets are cache-first (safe — filename changes when content changes).
-const CACHE = 'wordglow-v2';
+const CACHE = 'playglow-v3';
 const PRECACHE = ['/manifest.json'];
 
 self.addEventListener('install', (e) => {

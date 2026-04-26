@@ -1,6 +1,12 @@
-# WordGlow
+# PlayGlow
 
-Mobile-first PWA language game for kids. English / Arabic / Urdu.
+Mobile-first PWA learning game for kids. English / Arabic / Urdu.
+
+Live: https://playglow.pages.dev (legacy mirror still at https://wordglow.pages.dev).
+
+> Internal identifiers (D1 db, Worker subdomain, localStorage keys, repo path)
+> still use the original `wordglow` name to avoid breaking existing user data.
+> Only the user-facing display name is "PlayGlow".
 
 **Stack:** Vite + vanilla JS frontend, Cloudflare Workers API, D1 (SQLite), R2 (assets).
 
