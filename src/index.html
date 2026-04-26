@@ -55,7 +55,71 @@
 <body>
   <div id="app">
 
-    <!-- Language picker (first run only — switch later via gear icon on home) -->
+    <!-- Profile setup (first run) — Name + Age + Gender + Avatar -->
+    <section id="profile-screen" class="screen hidden">
+      <img src="/icons/logo.png" alt="PlayGlow" class="brand-logo brand-logo-md" />
+      <p class="tagline">Who's playing today?</p>
+
+      <div class="profile-form">
+        <label class="field">
+          <span class="field-label">Your name</span>
+          <input id="pf-name" type="text" maxlength="20" autocomplete="off" placeholder="Type your name" />
+        </label>
+
+        <div class="field">
+          <span class="field-label">Your age</span>
+          <div class="chip-row" id="pf-ages">
+            <button class="age-chip" data-age="3">3</button>
+            <button class="age-chip" data-age="4">4</button>
+            <button class="age-chip" data-age="5">5</button>
+            <button class="age-chip" data-age="6">6</button>
+            <button class="age-chip" data-age="7">7</button>
+            <button class="age-chip" data-age="8">8</button>
+            <button class="age-chip" data-age="9">9</button>
+            <button class="age-chip" data-age="10+">10+</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">You are <span class="field-optional">(optional)</span></span>
+          <div class="chip-row" id="pf-genders">
+            <button class="gender-chip" data-gender="boy">👦 Boy</button>
+            <button class="gender-chip" data-gender="girl">👧 Girl</button>
+            <button class="gender-chip selected" data-gender="">Skip</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Pick your buddy</span>
+          <div class="avatar-grid" id="pf-avatars">
+            <button class="avatar-btn" data-av="🦊">🦊</button>
+            <button class="avatar-btn" data-av="🐻">🐻</button>
+            <button class="avatar-btn" data-av="🦄">🦄</button>
+            <button class="avatar-btn" data-av="🐯">🐯</button>
+            <button class="avatar-btn" data-av="🐼">🐼</button>
+            <button class="avatar-btn" data-av="🐵">🐵</button>
+            <button class="avatar-btn" data-av="🐸">🐸</button>
+            <button class="avatar-btn" data-av="🦁">🦁</button>
+            <button class="avatar-btn" data-av="🐧">🐧</button>
+            <button class="avatar-btn" data-av="🦉">🦉</button>
+            <button class="avatar-btn" data-av="⭐">⭐</button>
+            <button class="avatar-btn" data-av="🌈">🌈</button>
+            <button class="avatar-btn" data-av="🚀">🚀</button>
+            <button class="avatar-btn" data-av="🐙">🐙</button>
+            <button class="avatar-btn" data-av="🐝">🐝</button>
+            <button class="avatar-btn" data-av="🦋">🦋</button>
+          </div>
+        </div>
+
+        <p class="privacy-note">🔒 Your child's info stays on this device. Nothing is sent anywhere.</p>
+
+        <button id="pf-save" class="start-btn" disabled>
+          <span class="start-en">Let's Play</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Language picker (legacy / fallback — switch via 🌐 on home) -->
     <section id="lang-screen" class="screen hidden">
       <img src="/icons/logo.png" alt="PlayGlow" class="brand-logo" />
       <p class="tagline">Learning that feels like play.</p>
@@ -70,10 +134,13 @@
     <section id="home-screen" class="screen hidden">
       <header class="home-header">
         <button id="lang-switch" class="chip" aria-label="Change language">🌐 <span id="lang-label">EN</span></button>
-        <img src="/icons/logo.png" alt="PlayGlow" class="brand-logo brand-logo-sm" />
+        <button id="profile-chip" class="profile-chip" aria-label="Your profile">
+          <span class="profile-avatar" id="profile-avatar">🦊</span>
+          <span class="profile-name" id="profile-name">Hi!</span>
+        </button>
         <div class="stars-pill">⭐ <span id="lifetime-stars">0</span></div>
       </header>
-      <h2 class="home-title">Pick an Activity</h2>
+      <h2 class="home-title" id="home-greeting">Pick an Activity</h2>
       <div id="level-grid" class="level-grid"></div>
     </section>
 
@@ -121,9 +188,9 @@
 
     <footer class="app-footer">
       <p class="story">
-        Once upon a time, <a href="https://fb.com/helloMeeran" target="_blank" rel="noopener">Meeran</a>
-        asked for a learning-game. So <a href="https://fb.com/Khalidgraphy" target="_blank" rel="noopener">Khalidgraphy</a>
-        made one. ✨
+        Once upon a time, <a href="https://fb.com/helloMeeran" target="_blank" rel="noopener">Meeran</a> asked for a learning-game.
+        <br />
+        So, <a href="https://fb.com/Khalidgraphy" target="_blank" rel="noopener">Khalidgraphy</a> made one. ✨
       </p>
     </footer>
 

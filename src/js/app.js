@@ -45,14 +45,17 @@ function hideInfo() {
 }
 
 function init() {
-  if (!localStorage.getItem('wordglow:language')) {
+  // First-run path: no profile saved → setup screen. After save → home.
+  if (!Storage.getActiveProfile()) {
+    showScreen('profile-screen');
+    wireProfileSetup();
+  } else if (!localStorage.getItem('wordglow:language')) {
     showScreen('lang-screen');
   } else {
     renderHome();
   }
 
-  // "Let's Start" button — defaults primary language to English.
-  // Kid/parent can switch later via 🌐 button on home (which re-shows lang screen).
+  // "Let's Start" button (legacy lang-screen path; still works for users who get here)
   const startBtn = document.getElementById('start-btn');
   if (startBtn) {
     startBtn.onclick = () => {
@@ -69,6 +72,14 @@ function init() {
       renderHome();
     };
   });
+
+  // Profile chip (Phase 2 will open a picker; for now it just shows the name)
+  const profChip = document.getElementById('profile-chip');
+  if (profChip) profChip.onclick = () => {
+    const p = Storage.getActiveProfile();
+    if (p) showInfo(`${p.avatar} ${p.name}`,
+      `Age ${p.age}${p.gender ? ' · ' + p.gender : ''} · keep playing! More profiles + edit/delete coming soon.`);
+  };
 
   document.getElementById('lang-switch').onclick = () => showScreen('lang-screen');
   document.getElementById('back-home').onclick = () => renderHome();
@@ -93,9 +104,68 @@ function displayLabel(lvl) {
   return `Activity ${lvl.id}: ${lvl.name}`;
 }
 
+// Profile setup: collect name+age+avatar (gender optional), save, go home
+function wireProfileSetup() {
+  const nameInput  = document.getElementById('pf-name');
+  const ageRow     = document.getElementById('pf-ages');
+  const genderRow  = document.getElementById('pf-genders');
+  const avRow      = document.getElementById('pf-avatars');
+  const saveBtn    = document.getElementById('pf-save');
+  if (!nameInput || !saveBtn) return;
+
+  let pickedAge = '';
+  let pickedGender = '';   // default = skip
+  let pickedAvatar = '';
+
+  function refresh() {
+    const ok = nameInput.value.trim().length > 0 && pickedAge && pickedAvatar;
+    saveBtn.disabled = !ok;
+    saveBtn.style.opacity = ok ? '1' : '0.5';
+  }
+
+  nameInput.oninput = refresh;
+  ageRow.querySelectorAll('.age-chip').forEach(b => b.onclick = () => {
+    pickedAge = b.dataset.age;
+    ageRow.querySelectorAll('.age-chip').forEach(x => x.classList.toggle('selected', x === b));
+    refresh();
+  });
+  genderRow.querySelectorAll('.gender-chip').forEach(b => b.onclick = () => {
+    pickedGender = b.dataset.gender || '';
+    genderRow.querySelectorAll('.gender-chip').forEach(x => x.classList.toggle('selected', x === b));
+  });
+  avRow.querySelectorAll('.avatar-btn').forEach(b => b.onclick = () => {
+    pickedAvatar = b.dataset.av;
+    avRow.querySelectorAll('.avatar-btn').forEach(x => x.classList.toggle('selected', x === b));
+    refresh();
+  });
+
+  saveBtn.onclick = () => {
+    if (saveBtn.disabled) return;
+    Audio.arm();
+    Storage.saveProfile({
+      name: nameInput.value.trim(),
+      age: pickedAge,
+      gender: pickedGender,
+      avatar: pickedAvatar
+    });
+    if (!localStorage.getItem('wordglow:language')) Storage.setLanguage('en');
+    renderHome();
+  };
+
+  refresh();
+}
+
 function renderHome() {
   document.getElementById('lifetime-stars').textContent = Storage.getStars();
   document.getElementById('lang-label').textContent = LANG_LABEL[Storage.getLanguage()] || 'EN';
+
+  // Profile chip + greeting
+  const profile = Storage.getActiveProfile();
+  if (profile) {
+    document.getElementById('profile-avatar').textContent = profile.avatar;
+    document.getElementById('profile-name').textContent = profile.name;
+    document.getElementById('home-greeting').textContent = `Hi, ${profile.name}! Pick an Activity`;
+  }
 
   const last = Storage.getLastLevel();
   const scores = Storage.getScores();
