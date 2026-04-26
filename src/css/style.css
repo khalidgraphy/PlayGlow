@@ -777,7 +777,22 @@ body::before {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
 }
 .tap-prompt .prompt-text {
-  font-size: 16px; color: var(--ink); font-weight: 600;
+  font-size: 14px; color: var(--ink-soft); font-weight: 600;
+}
+/* Hear & Tap word row: English ▸ 🔊 ▸ Urdu */
+.word-speaker-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; width: 100%;
+}
+.word-speaker-row .ws-en {
+  flex: 1; text-align: right;
+  font-size: 22px; font-weight: 700; color: var(--ink);
+}
+.word-speaker-row .ws-ur {
+  flex: 1; text-align: left;
+  font-size: 24px; font-weight: 700; color: var(--ink);
+  font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', sans-serif;
+  direction: rtl;
 }
 .big-speaker {
   background: var(--accent); border: none; color: white;

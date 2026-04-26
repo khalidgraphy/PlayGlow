@@ -1,5 +1,6 @@
-// Level 1: Hear & Tap (age 4)
-// Audio plays the target word; kid taps the matching emoji from 6 tiles.
+// Activity 4: Hear & Tap (age 4)
+// English word + 🔊 + Urdu word displayed at top so kids on devices without
+// working speakers (some Macs / Windows) can still play. Audio always English.
 // Wrong = 0 (no penalty for the youngest).
 
 import { Audio } from '../audio.js';
@@ -12,29 +13,35 @@ export const level1 = {
   emoji: '👂',
   desc: 'Listen, then tap the picture',
   ageHint: 'Age 4+',
-  guide: 'Child hears the word in the chosen language and taps the matching picture from 6 options.',
+  guide: 'Child hears the English word and taps the matching picture from 6 options. The word is shown in English and Urdu so kids on devices without sound can still play.',
   altCount: 5,
   roundsPerSession: 6,
   scoring: { right: 1, wrong: 0 },
 
-  render(stage, { round, lang, onAnswer }) {
+  render(stage, { round, onAnswer }) {
     const all = shuffle([round.target, ...round.alts]);
-    const targetText = round.target[lang] || round.target.en;
+    const enWord = round.target.en;
+    const urWord = round.target.ur;
 
     stage.innerHTML = `
       <div class="tap-prompt">
+        <div class="word-speaker-row">
+          <span class="ws-en">${escape(capitalise(enWord))}</span>
+          <button class="big-speaker" id="play-target" aria-label="Play sound">🔊</button>
+          <span class="ws-ur" dir="rtl">${escape(urWord)}</span>
+        </div>
         <div class="prompt-text">Tap the picture you hear</div>
-        <button class="big-speaker" id="play-target" aria-label="Play sound">🔊</button>
       </div>
       <div class="options-grid cols-3">
         ${all.map(t => `
-          <button class="option-tile emoji" data-id="${t.id}" aria-label="${escape(t[lang] || t.en)}">${t.emoji || '❓'}</button>
+          <button class="option-tile emoji" data-id="${t.id}" aria-label="${escape(t.en)}">${t.emoji || '❓'}</button>
         `).join('')}
       </div>
     `;
 
     const playBtn = stage.querySelector('#play-target');
-    const play = () => Audio.speak(targetText, lang);
+    // Always speak in English on this activity — many kids' first sound association
+    const play = () => Audio.speak(enWord, 'en');
     playBtn.onclick = play;
     setTimeout(play, 350);
 
@@ -58,3 +65,5 @@ export const level1 = {
     });
   }
 };
+
+function capitalise(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
