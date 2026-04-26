@@ -423,6 +423,73 @@ body::before {
   100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
 }
 
+/* ---------- Level 6: ABC Crush (match-3) ---------- */
+.level-card[data-id="6"] { --card-color: #FF6B9D; --card-tint: #FFE8F1; }
+
+.crush-hud {
+  display: flex; gap: 8px; justify-content: space-between;
+}
+.hud-pill {
+  flex: 1;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 2px 0 rgba(45,42,74,0.08);
+}
+.hud-pill.target { background: linear-gradient(180deg, #EFECFF, #DAD2FF); border-color: #C0B5FF; }
+.hud-pill.warn { background: linear-gradient(180deg, #FFE0E0, #FFC9C9); border-color: #FF9B9B; }
+.hud-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); }
+.hud-value { font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.1; }
+
+.crush-grid {
+  display: grid;
+  gap: 6px;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  aspect-ratio: 6 / 7;
+  width: 100%;
+}
+
+.crush-tile {
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: white;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.18), inset 0 -3px 0 rgba(0,0,0,0.08);
+  transition: transform 0.12s, box-shadow 0.12s;
+  min-width: 0; min-height: 0;
+  padding: 0;
+}
+.crush-tile:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,0.18), inset 0 -2px 0 rgba(0,0,0,0.08); }
+.crush-tile.empty { background: transparent; box-shadow: none; pointer-events: none; }
+.crush-tile.selected {
+  outline: 3px solid var(--ink);
+  outline-offset: -3px;
+  transform: scale(1.06);
+  z-index: 1;
+}
+.crush-tile.shake { animation: shake 0.4s ease; }
+
+/* tile colour groups */
+.crush-tile.tile-c0 { background: linear-gradient(180deg, #FFB347, #FF8E1A); } /* vowels: warm orange */
+.crush-tile.tile-c1 { background: linear-gradient(180deg, #4FC3F7, #1E9CDB); } /* sky */
+.crush-tile.tile-c2 { background: linear-gradient(180deg, #66BB6A, #43A047); } /* green */
+.crush-tile.tile-c3 { background: linear-gradient(180deg, #BA68C8, #8E24AA); } /* purple */
+.crush-tile.tile-c4 { background: linear-gradient(180deg, #EF5350, #C62828); } /* red */
+
+.crush-hint {
+  text-align: center; font-size: 12px; color: var(--ink-soft);
+  padding: 4px 8px;
+}
+
 /* ---------- Explore: Word Finder ---------- */
 .level-card.explore-card { --card-color: #FF6B9D; --card-tint: #FFE8F1; }
 

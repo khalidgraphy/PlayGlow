@@ -1,14 +1,15 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
-import { runLevel, showScreen } from './engine.js';
+import { runLevel, runCustomLevel, showScreen } from './engine.js';
 import { openExplore } from './explore.js';
 import { level1 } from './levels/level1.js';
 import { level2 } from './levels/level2.js';
 import { level3 } from './levels/level3.js';
 import { level4 } from './levels/level4.js';
 import { level5 } from './levels/level5.js';
+import { level6 } from './levels/level6.js';
 
-const LEVELS = [level1, level2, level3, level4, level5];
+const LEVELS = [level1, level2, level3, level4, level5, level6];
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 
 function init() {
@@ -73,10 +74,11 @@ function renderHome() {
 function start(id) {
   const lvl = LEVELS.find(l => l.id === id);
   if (!lvl) return;
-  Audio.arm(); // re-unlock speech inside this user gesture (works across all levels)
+  Audio.arm();
   Storage.setLastLevel(id);
   if ('_rotation' in lvl) lvl._rotation = 0;
-  runLevel(lvl, { onExit: handleExit(id) });
+  if (lvl.custom) runCustomLevel(lvl, { onExit: handleExit(id) });
+  else runLevel(lvl, { onExit: handleExit(id) });
 }
 
 function handleExit(currentId) {

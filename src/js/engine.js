@@ -117,6 +117,31 @@ export function showScreen(id) {
   document.getElementById(id).classList.remove('hidden');
 }
 
+// Custom (self-managed) level path. Level handles its own gameplay + scoring +
+// done-screen wiring. Engine just sets the header and yields the stage.
+export function runCustomLevel(level, { onExit }) {
+  active = null; // disable any in-flight engine round
+  titleEl().textContent = `Level ${level.id}: ${level.name}`;
+  subEl().textContent = level.desc;
+  // Hide engine score-pill — custom level renders its own scoreboard in #stage
+  scorePill().style.visibility = 'hidden';
+  showScreen('game-screen');
+  level.start(stage(), { onExit, showDone });
+}
+
+// Helper a custom level can call to show the standard done-screen.
+export function showDone({ title, stars = 0, summary = '', onAgain, onNext, onHome }) {
+  document.getElementById('done-title').textContent = title || 'Nice!';
+  document.getElementById('done-stars').textContent = '⭐'.repeat(Math.max(0, stars)) || '✨';
+  document.getElementById('done-summary').textContent = summary;
+  document.getElementById('done-again').onclick = onAgain || (() => {});
+  document.getElementById('done-next').onclick   = onNext  || (() => {});
+  document.getElementById('done-home').onclick   = onHome  || (() => {});
+  // Restore engine score-pill visibility for next regular level
+  scorePill().style.visibility = 'visible';
+  showScreen('done-screen');
+}
+
 export function toast(msg, kind = '') {
   const el = document.createElement('div');
   el.className = 'toast' + (kind ? ' ' + kind : '');
