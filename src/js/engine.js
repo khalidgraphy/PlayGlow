@@ -26,7 +26,7 @@ export async function runLevel(level, { onExit }) {
     onExit
   };
 
-  titleEl().textContent = `Level ${level.id}: ${level.name}`;
+  titleEl().textContent = `Activity ${level.id}: ${level.name}`;
   subEl().textContent = level.desc;
   updateScoreUI(0);
   showScreen('game-screen');
@@ -121,7 +121,7 @@ export function showScreen(id) {
 // done-screen wiring. Engine just sets the header and yields the stage.
 export function runCustomLevel(level, { onExit }) {
   active = null; // disable any in-flight engine round
-  titleEl().textContent = `Level ${level.id}: ${level.name}`;
+  titleEl().textContent = `Activity ${level.id}: ${level.name}`;
   subEl().textContent = level.desc;
   // Hide engine score-pill — custom level renders its own scoreboard in #stage
   scorePill().style.visibility = 'hidden';

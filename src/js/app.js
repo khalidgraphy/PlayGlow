@@ -60,7 +60,7 @@ function init() {
   document.getElementById('back-home').onclick = () => renderHome();
   document.getElementById('subs-back').onclick = () => renderHome();
   document.getElementById('subs-info').onclick = () =>
-    showInfo('Level 1: ABC Crush', LEVEL1_PARENT.guide);
+    showInfo('Activity 1: ABC Crush', LEVEL1_PARENT.guide);
 
   document.getElementById('info-close').onclick = hideInfo;
   document.getElementById('info-overlay').onclick = (e) => {
@@ -75,8 +75,8 @@ function init() {
 let currentLevel = null;
 
 function displayLabel(lvl) {
-  if (lvl.label) return `Level ${lvl.label}: ${lvl.name}`;
-  return `Level ${lvl.id}: ${lvl.name}`;
+  if (lvl.label) return `Activity ${lvl.label}: ${lvl.name}`;
+  return `Activity ${lvl.id}: ${lvl.name}`;
 }
 
 function renderHome() {
@@ -92,7 +92,7 @@ function renderHome() {
     return `
       <div class="level-card${recommended}" data-id="${lvl.id}">
         <button class="info-btn corner" data-info-id="${lvl.id}" aria-label="How to play">i</button>
-        <div class="lvl-num">LEVEL ${lvl.id}${lvl.parent ? ' ▸' : ''}</div>
+        <div class="lvl-num">ACTIVITY ${lvl.id}${lvl.parent ? ' ▸' : ''}</div>
         <div class="lvl-emoji">${lvl.emoji}</div>
         <div class="lvl-name">${lvl.name}</div>
         <div class="lvl-desc">${lvl.desc}</div>
@@ -116,7 +116,7 @@ function renderHome() {
       e.stopPropagation();
       const id = parseInt(btn.dataset.infoId, 10);
       const lvl = HOME_LEVELS.find(l => l.id === id);
-      if (lvl) showInfo(`Level ${lvl.id}: ${lvl.name}`, lvl.guide || '');
+      if (lvl) showInfo(`Activity ${lvl.id}: ${lvl.name}`, lvl.guide || '');
     };
   });
 
@@ -154,7 +154,7 @@ function openSubs() {
       e.stopPropagation();
       const id = parseInt(btn.dataset.infoId, 10);
       const sub = CRUSH_SUBS.find(s => s.id === id);
-      if (sub) showInfo(`Level ${sub.label}: ${sub.name}`, sub.guide);
+      if (sub) showInfo(`Activity ${sub.label}: ${sub.name}`, sub.guide);
     };
   });
   showScreen('subs-screen');
