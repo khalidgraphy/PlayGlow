@@ -1,0 +1,22 @@
+{
+  "name": "wordglow",
+  "version": "0.1.0",
+  "description": "Mobile-first PWA language learning game (English, Arabic, Urdu)",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
+    "db:schema": "wrangler d1 execute wordglow --file db/schema.sql",
+    "db:seed": "wrangler d1 execute wordglow --file db/seed.sql",
+    "db:schema:remote": "wrangler d1 execute wordglow --remote --file db/schema.sql",
+    "db:seed:remote": "wrangler d1 execute wordglow --remote --file db/seed.sql"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0",
+    "vite-plugin-pwa": "^0.20.0",
+    "wrangler": "^3.78.0"
+  }
+}

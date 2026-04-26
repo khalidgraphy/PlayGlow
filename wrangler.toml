@@ -1,0 +1,20 @@
+# Local-only config for now. CF deploy + secrets wired in next phase.
+# After binding D1 in CF dashboard, paste database_id below before deploying.
+
+name = "wordglow-api"
+main = "src/workers/api.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENV = "dev"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "wordglow"
+database_id = "TODO_FILL_AFTER_CREATE"
+
+# R2 + custom domain to be added in next phase
+# [[r2_buckets]]
+# binding = "R2"
+# bucket_name = "wordglow-assets"
