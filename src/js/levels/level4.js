@@ -8,7 +8,7 @@ import { ALPHABETS, shuffle } from '../alphabets.js';
 import { escape } from '../engine.js';
 
 export const level4 = {
-  id: 4,
+  id: 5,
   name: 'Spell It',
   emoji: '✏️',
   desc: 'Tap letters to spell',

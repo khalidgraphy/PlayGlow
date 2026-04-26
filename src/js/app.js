@@ -2,16 +2,30 @@ import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { runLevel, runCustomLevel, showScreen } from './engine.js';
 import { openExplore } from './explore.js';
-import { level1 } from './levels/level1.js';
-import { level2 } from './levels/level2.js';
-import { level3 } from './levels/level3.js';
-import { level4 } from './levels/level4.js';
-import { level5 } from './levels/level5.js';
-import { level6 } from './levels/level6.js';
+import { level1 as hearTap }      from './levels/level1.js';   // id 2
+import { level2 as threeNames }   from './levels/level2.js';   // id 3
+import { level3 as firstLetter }  from './levels/level3.js';   // id 4
+import { level4 as spellIt }      from './levels/level4.js';   // id 5
+import { level5 as matchTrans }   from './levels/level5.js';   // id 6
+import { CRUSH_SUBS } from './games/sublevels.js';
+import { COLOR_MAP } from './games/crush.js';
 
-const LEVELS = [level1, level2, level3, level4, level5, level6];
+// Level 1 is a "parent" — its card opens the sub-level picker, not a game directly.
+const LEVEL1_PARENT = {
+  id: 1,
+  name: 'ABC Crush',
+  emoji: '🍬',
+  desc: '4 letter packs to play',
+  ageHint: 'Age 4+',
+  guide: 'Tap two side-by-side colored letter tiles to swap them. Match 3 or more of the same color in a row to clear and score points.',
+  parent: true
+};
+
+const HOME_LEVELS = [LEVEL1_PARENT, hearTap, threeNames, firstLetter, spellIt, matchTrans];
+// Routing lookup: parent + sub-levels + learning levels
+const ALL_LEVELS = [LEVEL1_PARENT, ...CRUSH_SUBS, hearTap, threeNames, firstLetter, spellIt, matchTrans];
+
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
-
 const EXPLORE_GUIDE = 'Child taps any letter A–Z to see up to 3 words starting with it, with picture and pronunciation in 3 languages.';
 
 export function showInfo(title, text) {
@@ -21,7 +35,6 @@ export function showInfo(title, text) {
   overlay.classList.remove('hidden');
   overlay.setAttribute('aria-hidden', 'false');
 }
-
 function hideInfo() {
   const overlay = document.getElementById('info-overlay');
   overlay.classList.add('hidden');
@@ -29,7 +42,6 @@ function hideInfo() {
 }
 
 function init() {
-  // First-run language picker, otherwise straight to home
   if (!localStorage.getItem('wordglow:language')) {
     showScreen('lang-screen');
   } else {
@@ -38,7 +50,7 @@ function init() {
 
   document.querySelectorAll('#lang-screen .lang-btn').forEach(btn => {
     btn.onclick = () => {
-      Audio.arm(); // unlock speech engine inside the user gesture
+      Audio.arm();
       Storage.setLanguage(btn.dataset.lang);
       renderHome();
     };
@@ -47,19 +59,26 @@ function init() {
   document.getElementById('lang-switch').onclick = () => showScreen('lang-screen');
   document.getElementById('back-home').onclick = () => renderHome();
   document.getElementById('explore-back').onclick = () => renderHome();
+  document.getElementById('subs-back').onclick = () => renderHome();
+  document.getElementById('subs-info').onclick = () =>
+    showInfo('Level 1: ABC Crush', LEVEL1_PARENT.guide);
 
-  // Info popup wiring
   document.getElementById('info-close').onclick = hideInfo;
   document.getElementById('info-overlay').onclick = (e) => {
     if (e.target.id === 'info-overlay') hideInfo();
   };
   document.getElementById('game-info').onclick = () => {
     const lvl = currentLevel;
-    if (lvl) showInfo(`Level ${lvl.id}: ${lvl.name}`, lvl.guide || 'Tap, listen, and learn.');
+    if (lvl) showInfo(displayLabel(lvl), lvl.guide || 'Tap, listen, and learn.');
   };
 }
 
 let currentLevel = null;
+
+function displayLabel(lvl) {
+  if (lvl.label) return `Level ${lvl.label}: ${lvl.name}`;
+  return `Level ${lvl.id}: ${lvl.name}`;
+}
 
 function renderHome() {
   document.getElementById('lifetime-stars').textContent = Storage.getStars();
@@ -68,13 +87,13 @@ function renderHome() {
   const last = Storage.getLastLevel();
   const scores = Storage.getScores();
   const grid = document.getElementById('level-grid');
-  grid.innerHTML = LEVELS.map(lvl => {
+  grid.innerHTML = HOME_LEVELS.map(lvl => {
     const s = scores[lvl.id] || { high: 0, last: 0 };
     const recommended = lvl.id === last ? ' recommended' : '';
     return `
       <div class="level-card${recommended}" data-id="${lvl.id}">
         <button class="info-btn corner" data-info-id="${lvl.id}" aria-label="How to play">i</button>
-        <div class="lvl-num">LEVEL ${lvl.id}</div>
+        <div class="lvl-num">LEVEL ${lvl.id}${lvl.parent ? ' ▸' : ''}</div>
         <div class="lvl-emoji">${lvl.emoji}</div>
         <div class="lvl-name">${lvl.name}</div>
         <div class="lvl-desc">${lvl.desc}</div>
@@ -86,21 +105,24 @@ function renderHome() {
     `;
   }).join('');
   grid.querySelectorAll('.level-card').forEach(card => {
-    card.onclick = () => start(parseInt(card.dataset.id, 10));
+    card.onclick = () => {
+      const id = parseInt(card.dataset.id, 10);
+      const lvl = HOME_LEVELS.find(l => l.id === id);
+      if (lvl?.parent) return openSubs();
+      start(id);
+    };
   });
   grid.querySelectorAll('.info-btn').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.infoId, 10);
-      const lvl = LEVELS.find(l => l.id === id);
+      const lvl = HOME_LEVELS.find(l => l.id === id);
       if (lvl) showInfo(`Level ${lvl.id}: ${lvl.name}`, lvl.guide || '');
     };
   });
 
-  // Explore card lives outside the level grid (separate section)
   const exploreCard = document.getElementById('open-explore');
   if (exploreCard) {
-    // Inject (i) button if not present
     if (!exploreCard.querySelector('.info-btn')) {
       const btn = document.createElement('button');
       btn.className = 'info-btn corner';
@@ -120,10 +142,47 @@ function renderHome() {
   showScreen('home-screen');
 }
 
+function openSubs() {
+  const grid = document.getElementById('subs-grid');
+  const scores = Storage.getScores();
+  grid.innerHTML = CRUSH_SUBS.map(sub => {
+    const s = scores[sub.id] || { high: 0 };
+    const dots = sub.letters.slice(0, 6).map(L => {
+      const c = COLOR_MAP[L];
+      return `<span class="color-dot" style="background:${c.bg}" title="${L}"></span>`;
+    }).join('');
+    return `
+      <div class="level-card sub-card" data-id="${sub.id}">
+        <button class="info-btn corner" data-info-id="${sub.id}" aria-label="How to play">i</button>
+        <div class="lvl-num sub-badge">${sub.label}</div>
+        <div class="color-strip">${dots}</div>
+        <div class="lvl-name">${sub.name}</div>
+        <div class="lvl-desc">${sub.letters.length} colors · target ${sub.target}</div>
+        <div class="lvl-meta">
+          <span>${sub.ageHint}</span>
+          <span class="best">${s.high ? '★ ' + s.high : ''}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  grid.querySelectorAll('.level-card').forEach(card => {
+    card.onclick = () => start(parseInt(card.dataset.id, 10));
+  });
+  grid.querySelectorAll('.info-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = parseInt(btn.dataset.infoId, 10);
+      const sub = CRUSH_SUBS.find(s => s.id === id);
+      if (sub) showInfo(`Level ${sub.label}: ${sub.name}`, sub.guide);
+    };
+  });
+  showScreen('subs-screen');
+}
+
 function start(id) {
-  const lvl = LEVELS.find(l => l.id === id);
+  const lvl = ALL_LEVELS.find(l => l.id === id);
   if (!lvl) return;
-  currentLevel = lvl; // for the in-game (i) button
+  currentLevel = lvl;
   Audio.arm();
   Storage.setLastLevel(id);
   if ('_rotation' in lvl) lvl._rotation = 0;
@@ -135,8 +194,19 @@ function handleExit(currentId) {
   return ({ next, home }) => {
     if (home) return renderHome();
     if (next) {
-      const nextLvl = LEVELS.find(l => l.id === currentId + 1);
-      if (nextLvl) return start(nextLvl.id);
+      // For crush subs, advance to next sub if there is one; otherwise back to subs picker
+      const sub = CRUSH_SUBS.find(s => s.id === currentId);
+      if (sub) {
+        const idx = CRUSH_SUBS.indexOf(sub);
+        const nextSub = CRUSH_SUBS[idx + 1];
+        if (nextSub) return start(nextSub.id);
+        return openSubs();
+      }
+      // Learning levels: walk to the next learning level by id
+      const order = HOME_LEVELS.filter(l => !l.parent).map(l => l.id);
+      const i = order.indexOf(currentId);
+      const nextId = order[i + 1];
+      if (nextId) return start(nextId);
       return renderHome();
     }
     renderHome();

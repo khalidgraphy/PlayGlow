@@ -11,7 +11,7 @@ import { renderNames, bindSpeakers, escape } from '../engine.js';
 const LANG_ORDER = ['en', 'ur', 'ar'];
 
 export const level3 = {
-  id: 3,
+  id: 4,
   name: 'First Letter',
   emoji: '🔤',
   desc: 'Tap the first letter',

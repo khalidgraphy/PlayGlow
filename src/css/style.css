@@ -423,8 +423,32 @@ body::before {
   100% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
 }
 
-/* ---------- Level 6: ABC Crush (match-3) ---------- */
-.level-card[data-id="6"] { --card-color: #FF6B9D; --card-tint: #FFE8F1; }
+/* ---------- Level 1: ABC Crush parent + sub-level cards ---------- */
+.level-card[data-id="1"] { --card-color: #FF6B9D; --card-tint: #FFE8F1; }
+.level-card[data-id="6"] { --card-color: #2BB673; --card-tint: #E8F8EF; } /* match-translation */
+
+.sub-card { padding-top: 18px; }
+.sub-badge {
+  display: inline-block;
+  background: var(--primary); color: white;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 13px; letter-spacing: 0.5px;
+}
+.color-strip {
+  display: flex; gap: 4px; margin: 6px 0;
+}
+.color-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* per-sub-pack accent (overrides default purple band) */
+.level-card[data-id="101"] { --card-color: #FF7F50; --card-tint: #FFEDE5; }
+.level-card[data-id="102"] { --card-color: #B57EDC; --card-tint: #F0E8FA; }
+.level-card[data-id="103"] { --card-color: #00A86B; --card-tint: #E0F4EC; }
+.level-card[data-id="104"] { --card-color: #2196F3; --card-tint: #E3F2FD; }
+
 
 .crush-hud {
   display: flex; gap: 8px; justify-content: space-between;
