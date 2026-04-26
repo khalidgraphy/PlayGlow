@@ -93,12 +93,14 @@ body::before {
   height: auto; aspect-ratio: 1;
   object-fit: contain;
   display: block;
+  margin: 0 auto;             /* centers the logo on any flex/block parent */
   user-select: none;
   -webkit-user-drag: none;
   filter: drop-shadow(0 8px 16px rgba(108, 92, 231, 0.18));
 }
-/* Live pulse on the big logo (language picker) — gentle "breathing" */
-#lang-screen .brand-logo {
+/* Live pulse on the big logo (language picker + profile setup) */
+#lang-screen .brand-logo,
+#profile-screen .brand-logo {
   animation: logo-pulse 2.6s ease-in-out infinite;
   transform-origin: center;
 }
