@@ -40,16 +40,17 @@ export const dailyWordLevel = {
           <span class="name-text">${escape(capitalise(word.en))}</span>
           <span class="lang-tag">EN</span>
         </div>
-        <div class="name-row rtl" dir="rtl">
-          <button class="speaker" data-speak="${escape(word.ur)}" data-lang="ur" aria-label="Play Urdu">🔊</button>
-          <span class="name-text">${escape(word.ur)}</span>
-          <span class="lang-tag">UR</span>
-        </div>
-        <div class="name-row rtl" dir="rtl">
-          <button class="speaker" data-speak="${escape(word.ar)}" data-lang="ar" aria-label="Play Arabic">🔊</button>
-          <span class="name-text">${escape(word.ar)}</span>
-          <span class="lang-tag">AR</span>
-        </div>
+        ${(() => {
+          const sec = Storage.getSecondaryLang();
+          const tag = sec === 'ar' ? 'AR' : 'UR';
+          return `
+            <div class="name-row rtl" dir="rtl">
+              <button class="speaker" data-speak="${escape(word[sec])}" data-lang="${sec}" aria-label="Play ${tag}">🔊</button>
+              <span class="name-text">${escape(word[sec])}</span>
+              <span class="lang-tag">${tag}</span>
+            </div>
+          `;
+        })()}
       </div>
       <div style="text-align:center;color:#888;font-size:13px;margin-top:6px">
         ${isFirstToday ? '⭐ Tap each speaker, then come back tomorrow for a new word!'

@@ -31,6 +31,23 @@ const ALL_LEVELS = [LEVEL1_PARENT, colorTrap, wordFinder, ...CRUSH_SUBS, hearTap
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 
+function openSettings() {
+  syncSettingsUI();
+  showScreen('lang-screen');
+}
+
+function syncSettingsUI() {
+  const sec = Storage.getSecondaryLang();
+  const ar = document.getElementById('ar-toggle');
+  if (ar) ar.checked = sec === 'ar';
+  const urBadge = document.getElementById('ur-badge');
+  if (urBadge) {
+    urBadge.textContent = sec === 'ur' ? 'ON' : 'OFF';
+    urBadge.classList.toggle('badge-off', sec !== 'ur');
+    urBadge.classList.toggle('badge-on', sec === 'ur');
+  }
+}
+
 export function showInfo(title, text) {
   document.getElementById('info-title').textContent = title;
   document.getElementById('info-text').textContent = text;
@@ -49,9 +66,9 @@ function init() {
   if (!Storage.getActiveProfile()) {
     showScreen('profile-screen');
     wireProfileSetup();
-  } else if (!localStorage.getItem('wordglow:language')) {
-    showScreen('lang-screen');
   } else {
+    // Default primary lang to 'en' if missing — kept simple, no picker needed
+    if (!localStorage.getItem('wordglow:language')) Storage.setLanguage('en');
     renderHome();
   }
 
@@ -81,7 +98,17 @@ function init() {
       `Age ${p.age}${p.gender ? ' · ' + p.gender : ''} · keep playing! More profiles + edit/delete coming soon.`);
   };
 
-  document.getElementById('lang-switch').onclick = () => showScreen('lang-screen');
+  document.getElementById('lang-switch').onclick = () => openSettings();
+  const settingsBack = document.getElementById('settings-back');
+  if (settingsBack) settingsBack.onclick = () => renderHome();
+  const arToggle = document.getElementById('ar-toggle');
+  if (arToggle) {
+    arToggle.checked = Storage.getSecondaryLang() === 'ar';
+    arToggle.onchange = () => {
+      Storage.setSecondaryLang(arToggle.checked ? 'ar' : 'ur');
+      syncSettingsUI();
+    };
+  }
   document.getElementById('back-home').onclick = () => renderHome();
   document.getElementById('subs-back').onclick = () => renderHome();
   document.getElementById('subs-info').onclick = () =>
@@ -157,7 +184,8 @@ function wireProfileSetup() {
 
 function renderHome() {
   document.getElementById('lifetime-stars').textContent = Storage.getStars();
-  document.getElementById('lang-label').textContent = LANG_LABEL[Storage.getLanguage()] || 'EN';
+  const sec = Storage.getSecondaryLang();
+  document.getElementById('lang-label').textContent = sec === 'ar' ? 'EN+AR' : 'EN+UR';
 
   // Profile chip + greeting
   const profile = Storage.getActiveProfile();

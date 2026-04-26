@@ -3,6 +3,7 @@
 // Promoted from the old "Explore" section into a real level.
 
 import { Audio } from '../audio.js';
+import { Storage } from '../storage.js';
 import { escape } from '../engine.js';
 import { WORDS_BY_LETTER, ALL_LETTERS } from './wordfinderdata.js';
 
@@ -34,6 +35,8 @@ export const wordFinder = {
           <div class="empty-title">No "${letter}" words yet</div>
         </div>`;
       }
+      const sec = Storage.getSecondaryLang(); // 'ur' or 'ar'
+      const secLabel = sec === 'ar' ? 'AR' : 'UR';
       return words.map(w => `
         <div class="word-card" data-en="${escape(w.en)}">
           <div class="word-emoji">${w.emoji}</div>
@@ -44,14 +47,9 @@ export const wordFinder = {
               <span class="lang-tag-mini">EN</span>
             </div>
             <div class="word-row rtl" dir="rtl">
-              <button class="speaker-mini" data-speak="${escape(w.ur)}" data-lang="ur">🔊</button>
-              <span class="word-script">${escape(w.ur)}</span>
-              <span class="lang-tag-mini">UR</span>
-            </div>
-            <div class="word-row rtl" dir="rtl">
-              <button class="speaker-mini" data-speak="${escape(w.ar)}" data-lang="ar">🔊</button>
-              <span class="word-script">${escape(w.ar)}</span>
-              <span class="lang-tag-mini">AR</span>
+              <button class="speaker-mini" data-speak="${escape(w[sec])}" data-lang="${sec}">🔊</button>
+              <span class="word-script">${escape(w[sec])}</span>
+              <span class="lang-tag-mini">${secLabel}</span>
             </div>
           </div>
         </div>

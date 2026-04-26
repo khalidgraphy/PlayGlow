@@ -9,6 +9,10 @@ const LEVEL_KEY = 'wordglow:last_level';
 const PROFILES_KEY = 'playglow:profiles';      // array of { id, name, age, gender, avatar, createdAt }
 const ACTIVE_KEY   = 'playglow:activeProfile'; // id of currently active profile
 
+// Secondary language preference. English is always the primary teaching lang.
+// Default secondary is Urdu; parents can switch to Arabic in Settings.
+const SECONDARY_KEY = 'playglow:secondaryLang'; // 'ur' | 'ar'
+
 export const Storage = {
   getSessionId() {
     let id = localStorage.getItem(SESSION_KEY);
@@ -42,6 +46,16 @@ export const Storage = {
     all[level] = { high: Math.max(cur.high, score), last: score };
     localStorage.setItem(SCORES_KEY, JSON.stringify(all));
     return all[level];
+  },
+
+  // ---- Secondary language (Urdu default; Arabic opt-in) ----
+  getSecondaryLang() {
+    const v = localStorage.getItem(SECONDARY_KEY);
+    return v === 'ar' ? 'ar' : 'ur';
+  },
+  setSecondaryLang(code) {
+    if (code !== 'ur' && code !== 'ar') return;
+    localStorage.setItem(SECONDARY_KEY, code);
   },
 
   // ---- Profile (Phase 1: single profile; schema is multi-ready) ----
