@@ -12,7 +12,7 @@ ENV = "dev"
 [[d1_databases]]
 binding = "DB"
 database_name = "wordglow"
-database_id = "TODO_FILL_AFTER_CREATE"
+database_id = "385f6f9e-a460-4586-bf2d-5cec39877e98"
 
 # R2 + custom domain to be added in next phase
 # [[r2_buckets]]

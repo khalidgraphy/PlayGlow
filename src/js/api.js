@@ -1,4 +1,8 @@
-const BASE = '/api';
+// Local dev: vite proxies /api -> http://localhost:8787 (see vite.config.js)
+// Prod: hit the deployed Worker directly (CORS allows *.pages.dev)
+const BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+  ? '/api'
+  : 'https://wordglow-api.khalidmir-88.workers.dev/api';
 
 export const API = {
   async getWords({ language, difficulty = 1, limit = 6 }) {
