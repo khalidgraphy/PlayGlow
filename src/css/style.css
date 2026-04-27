@@ -684,6 +684,172 @@ body::before {
   font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', sans-serif;
 }
 
+/* ---------- Tic Tac Toe (Activity 2) ---------- */
+.ttt-root { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.ttt-step-title {
+  font-size: 18px; font-weight: 700; color: var(--ink);
+  text-align: center; margin: 4px 0;
+}
+
+.ttt-mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ttt-mode-card {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 18px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex; flex-direction: column; gap: 6px; align-items: center;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.15s;
+}
+.ttt-mode-card:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(45,42,74,0.18); }
+.ttt-mode-card:hover { border-color: var(--primary); }
+.ttt-mode-emoji { font-size: 38px; line-height: 1; }
+.ttt-mode-name { font-size: 17px; font-weight: 700; color: var(--ink); }
+.ttt-mode-desc { font-size: 12px; color: var(--ink-soft); text-align: center; }
+
+.ttt-grid-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.ttt-grid-card {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex; flex-direction: column; gap: 4px; align-items: center;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.15s;
+}
+.ttt-grid-card:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(45,42,74,0.18); }
+.ttt-grid-label { font-size: 22px; font-weight: 700; color: var(--ink); }
+.ttt-grid-diff { font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
+.ttt-grid-desc { font-size: 11px; color: var(--ink-soft); text-align: center; }
+
+.ttt-mark-section {
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.ttt-mark-label { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: 0.3px; }
+.ttt-mark-row { display: flex; align-items: center; gap: 10px; }
+.ttt-mark-input {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 26px; font-weight: 700;
+  width: 64px; height: 56px; text-align: center;
+  border: 2px solid var(--line); border-radius: 12px;
+  background: var(--surface); color: var(--ink);
+  outline: none;
+}
+.ttt-mark-input:focus { border-color: var(--primary); }
+.ttt-or { font-size: 12px; color: var(--ink-soft); }
+.ttt-emoji-grid {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
+}
+.ttt-emoji-btn {
+  font-size: 22px; line-height: 1;
+  width: 100%; aspect-ratio: 1;
+  border: 2px solid var(--line); border-radius: 10px;
+  background: var(--surface); cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
+}
+.ttt-emoji-btn:active { transform: scale(0.94); }
+.ttt-emoji-btn.selected {
+  background: linear-gradient(135deg, #EFECFF, #DAD2FF);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.25);
+}
+
+/* Game */
+.ttt-game-hud {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.ttt-player-pill {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: border-color 0.18s, background 0.18s, transform 0.18s;
+  flex: 1;
+  min-width: 0;
+}
+.ttt-player-pill.active {
+  background: linear-gradient(135deg, #EFECFF, #DAD2FF);
+  border-color: var(--primary);
+  transform: scale(1.04);
+}
+.ttt-mark-display {
+  font-size: 28px; font-weight: 700; color: var(--ink); line-height: 1;
+}
+.ttt-player-name {
+  font-size: 11px; color: var(--ink-soft); font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
+}
+.ttt-vs { font-size: 12px; font-weight: 700; color: var(--muted); padding: 0 8px; }
+
+.ttt-turn-indicator {
+  text-align: center; font-size: 13px; font-weight: 600; color: var(--ink-soft);
+}
+
+.ttt-board {
+  display: grid; gap: 6px;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.ttt-cell {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  font-family: 'Fredoka', sans-serif; font-weight: 700;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.12s, background 0.2s, border-color 0.2s;
+  padding: 0; min-width: 0; min-height: 0;
+  color: var(--ink);
+  touch-action: manipulation;
+  user-select: none;
+}
+.ttt-board[data-size="3"] .ttt-cell { font-size: 56px; }
+.ttt-board[data-size="4"] .ttt-cell { font-size: 40px; }
+.ttt-board[data-size="5"] .ttt-cell { font-size: 30px; }
+.ttt-cell:active:not(:disabled) { transform: scale(0.94); }
+.ttt-cell:disabled { cursor: default; }
+.ttt-cell:not(:empty) {
+  animation: pop 0.32s ease;
+}
+.ttt-cell.win {
+  background: linear-gradient(135deg, #C8F7C5, #A5E89F);
+  border-color: var(--good);
+  animation: pop 0.4s ease;
+}
+
+.ttt-game-actions {
+  display: flex; gap: 8px; justify-content: center; margin-top: 4px;
+}
+
+@media (max-width: 380px) {
+  .ttt-emoji-grid { grid-template-columns: repeat(8, 1fr); }
+  .ttt-emoji-btn { font-size: 18px; }
+  .ttt-board { max-width: 100%; }
+  .ttt-board[data-size="3"] .ttt-cell { font-size: 48px; }
+  .ttt-board[data-size="4"] .ttt-cell { font-size: 34px; }
+  .ttt-board[data-size="5"] .ttt-cell { font-size: 26px; }
+}
+
 /* ---------- Color Trap (Activity 2) ---------- */
 .ct-root { display: flex; flex-direction: column; gap: 14px; flex: 1; }
 .ct-pick-title {

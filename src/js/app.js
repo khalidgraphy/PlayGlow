@@ -1,7 +1,7 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { runLevel, runCustomLevel, showScreen } from './engine.js';
-import { colorTrap }              from './games/colortrap.js';      // id 2 (Stroop game)
+import { ticTacToe }              from './games/tictactoe.js';      // id 2 (NEW)
 import { wordFinder }             from './levels/wordfinder.js';    // id 3
 import { level1 as hearTap }      from './levels/level1.js';        // id 4
 import { level4 as spellIt }      from './levels/level4.js';        // id 5
@@ -9,7 +9,7 @@ import { level2 as threeNames }   from './levels/level2.js';        // id 6
 import { level3 as firstLetter }  from './levels/level3.js';        // id 7
 import { level5 as matchTrans }   from './levels/level5.js';        // id 8
 import { missingLetter }          from './levels/missingletter.js'; // id 9
-import { dailyWordLevel }         from './levels/dailyword.js';     // id 10
+import { colorTrap }              from './games/colortrap.js';      // id 10 (was id 2; Daily Word removed)
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -25,9 +25,10 @@ const LEVEL1_PARENT = {
 };
 
 // Display order on home — matches numeric id sequence (1..10)
-const HOME_LEVELS = [LEVEL1_PARENT, colorTrap, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
+// (Daily Word removed; Color Trap moved from id 2 → id 10; Tic Tac Toe new at id 2)
+const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap];
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, colorTrap, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, dailyWordLevel];
+const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap];
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 

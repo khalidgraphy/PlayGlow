@@ -39,7 +39,7 @@ const STREAK_BONUS = 20;
 let abortPrev = null;
 
 export const colorTrap = {
-  id: 2,
+  id: 10,
   name: 'Color Trap',
   emoji: '🎯',
   desc: 'Tap the right color',
@@ -66,7 +66,7 @@ export const colorTrap = {
             `).join('')}
           </div>
           <p class="muted" style="text-align:center;font-size:12px;margin-top:6px">
-            Best score: ${Storage.getScores()[2]?.high || 0}
+            Best score: ${Storage.getScores()[10]?.high || 0}
           </p>
         </div>
       `;
@@ -245,7 +245,7 @@ export const colorTrap = {
         if (timerId) clearInterval(timerId);
         const stars = won ? 3 : score >= 100 ? 2 : score >= 30 ? 1 : 0;
         Storage.addStars(stars);
-        Storage.setLevelScore(2, score);
+        Storage.setLevelScore(10, score);
         if (won) Audio.win();
         showDone({
           title: won ? 'Round Cleared!' : 'Out of Lives',
