@@ -744,7 +744,26 @@ body::before {
   outline: none;
 }
 .ttt-mark-input:focus { border-color: var(--primary); }
-.ttt-or { font-size: 12px; color: var(--ink-soft); }
+
+/* Inline X / O traditional quick-picks next to the letter input */
+.ttt-quick-picks { display: flex; gap: 6px; }
+.ttt-quick-btn {
+  width: 44px; height: 56px;
+  border: 2px solid var(--line); border-radius: 12px;
+  background: var(--surface); color: var(--ink);
+  font-family: 'Fredoka', sans-serif; font-weight: 700;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.ttt-quick-btn:active:not([disabled]) { transform: scale(0.94); }
+.ttt-quick-btn.selected {
+  background: linear-gradient(135deg, #EFECFF, #DAD2FF);
+  border-color: var(--primary);
+}
+
+/* Single row of 8 emoji marks (was 2 rows of 8) */
 .ttt-emoji-grid {
   display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px;
 }
@@ -755,14 +774,31 @@ body::before {
   background: var(--surface); cursor: pointer;
   font-family: inherit;
   padding: 0;
-  transition: transform 0.1s, background 0.15s, border-color 0.15s;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s, opacity 0.15s;
 }
-.ttt-emoji-btn:active { transform: scale(0.94); }
+.ttt-emoji-btn:active:not([disabled]) { transform: scale(0.94); }
 .ttt-emoji-btn.selected {
   background: linear-gradient(135deg, #EFECFF, #DAD2FF);
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.25);
 }
+
+/* Cross-disable: a mark already taken by the other player */
+.ttt-quick-btn.mark-disabled,
+.ttt-emoji-btn.mark-disabled,
+.ttt-quick-btn[disabled],
+.ttt-emoji-btn[disabled] {
+  opacity: 0.3;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.ttt-mark-error {
+  text-align: center; font-size: 12px; font-weight: 700;
+  color: #B33; background: #FFE0E0; border: 2px solid #FFB1B1;
+  padding: 8px 10px; border-radius: 12px;
+}
+.button[disabled] { opacity: 0.55; cursor: default; box-shadow: none; }
 
 /* Game */
 .ttt-game-hud {

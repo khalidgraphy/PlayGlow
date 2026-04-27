@@ -8,7 +8,9 @@ import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
 import { escape } from '../engine.js';
 
-const AVATARS = ['🦊','🐻','🦄','🐯','🐼','🐵','🐸','🦁','🐧','🦉','⭐','🌈','🚀','🐙','🐝','🦋'];
+// 8 kid-friendly emojis + 2 traditional letters (X, O) shown as quick-picks
+const EMOJI_MARKS = ['🦋','🦁','🐶','⭐','🐴','😊','🌈','❤️'];
+const TRADITIONAL_MARKS = ['X', 'O'];
 
 // m,n,k-game shape: square m×m board, need k in a row
 const GRIDS = [
@@ -97,65 +99,126 @@ export const ticTacToe = {
     function showMarksStep() {
       const profile = Storage.getActiveProfile();
       const defP1 = profile?.name?.[0]?.toUpperCase() || 'X';
-      const defP2 = mode === 'robot' ? 'R' : 'O';
+      const defP2 = mode === 'robot' ? '🦁' : 'O';
+      let p1Mark = defP1;
+      let p2Mark = defP2;
 
-      stage.innerHTML = `
-        <div class="ttt-root">
-          <div class="ttt-step-title">Pick your marks</div>
-
-          <div class="ttt-mark-section">
-            <div class="ttt-mark-label">Player 1${profile ? ' · ' + escape(profile.name) : ''}</div>
+      function markSection(num, currentMark, sectionLabel) {
+        return `
+          <div class="ttt-mark-section" id="ttt-p${num}-section">
+            <div class="ttt-mark-label">${sectionLabel}</div>
             <div class="ttt-mark-row">
-              <input id="ttt-p1-letter" class="ttt-mark-input" type="text" maxlength="2" value="${escape(defP1)}" autocomplete="off" />
-              <span class="ttt-or">or pick an emoji</span>
+              <input id="ttt-p${num}-letter" class="ttt-mark-input" type="text" maxlength="2" value="${escape(currentMark)}" autocomplete="off" placeholder="?" />
+              <div class="ttt-quick-picks">
+                ${TRADITIONAL_MARKS.map(t => `<button class="ttt-quick-btn ${currentMark === t ? 'selected' : ''}" data-mark="${escape(t)}" type="button">${escape(t)}</button>`).join('')}
+              </div>
             </div>
-            <div class="ttt-emoji-grid" id="ttt-p1-emojis">
-              ${AVATARS.map(e => `<button class="ttt-emoji-btn" data-emoji="${e}">${e}</button>`).join('')}
+            <div class="ttt-emoji-grid">
+              ${EMOJI_MARKS.map(e => `<button class="ttt-emoji-btn ${currentMark === e ? 'selected' : ''}" data-mark="${escape(e)}" type="button">${escape(e)}</button>`).join('')}
             </div>
           </div>
+        `;
+      }
 
-          <div class="ttt-mark-section">
-            <div class="ttt-mark-label">${mode === 'robot' ? '🤖 Robot' : 'Player 2'}</div>
-            <div class="ttt-mark-row">
-              <input id="ttt-p2-letter" class="ttt-mark-input" type="text" maxlength="2" value="${escape(defP2)}" autocomplete="off" />
-              <span class="ttt-or">or pick an emoji</span>
-            </div>
-            <div class="ttt-emoji-grid" id="ttt-p2-emojis">
-              ${AVATARS.map(e => `<button class="ttt-emoji-btn" data-emoji="${e}">${e}</button>`).join('')}
-            </div>
+      function rebuild() {
+        const p1Label = `Player 1${profile ? ' · ' + escape(profile.name) : ''}`;
+        const p2Label = mode === 'robot' ? '🤖 Robot' : 'Player 2';
+        stage.innerHTML = `
+          <div class="ttt-root">
+            <div class="ttt-step-title">Pick your marks</div>
+            ${markSection(1, p1Mark, p1Label)}
+            ${markSection(2, p2Mark, p2Label)}
+            <div id="ttt-mark-error" class="ttt-mark-error" style="display:none">Both players need different marks!</div>
+            <button class="button" id="ttt-start">Start Game</button>
           </div>
+        `;
+        wire();
+        syncDisabled();
+        validate();
+      }
 
-          <button class="button" id="ttt-start">Start Game</button>
-        </div>
-      `;
-
-      // Emoji clicks fill the matching input
-      function wireEmojiPicker(rootSel, inputSel) {
-        stage.querySelectorAll(`${rootSel} .ttt-emoji-btn`).forEach(b => {
-          b.onclick = () => {
-            stage.querySelector(inputSel).value = b.dataset.emoji;
-            stage.querySelectorAll(`${rootSel} .ttt-emoji-btn`)
-                 .forEach(x => x.classList.toggle('selected', x === b));
+      function wire() {
+        [1, 2].forEach(num => {
+          const section = stage.querySelector(`#ttt-p${num}-section`);
+          const input = section.querySelector('.ttt-mark-input');
+          input.oninput = () => {
+            const v = input.value.trim();
+            if (num === 1) p1Mark = v; else p2Mark = v;
+            highlightSelected(section, v);
+            syncDisabled();
+            validate();
           };
+          section.querySelectorAll('[data-mark]').forEach(b => {
+            b.onclick = () => {
+              if (b.classList.contains('mark-disabled')) return;
+              const m = b.dataset.mark;
+              input.value = m;
+              if (num === 1) p1Mark = m; else p2Mark = m;
+              highlightSelected(section, m);
+              syncDisabled();
+              validate();
+            };
+          });
+        });
+
+        stage.querySelector('#ttt-start').onclick = () => {
+          const m1 = normaliseMark(p1Mark) || defP1;
+          const m2 = normaliseMark(p2Mark) || defP2;
+          if (!m1 || !m2 || m1 === m2) {
+            const err = stage.querySelector('#ttt-mark-error');
+            err.textContent = m1 === m2
+              ? 'Both players need different marks!'
+              : 'Pick a mark for both players.';
+            err.style.display = 'block';
+            return;
+          }
+          p1 = { name: profile?.name || 'Player 1', mark: m1, isRobot: false };
+          p2 = {
+            name: mode === 'robot' ? 'Robot' : 'Player 2',
+            mark: m2,
+            isRobot: mode === 'robot'
+          };
+          runGame();
+        };
+      }
+
+      function highlightSelected(section, mark) {
+        section.querySelectorAll('[data-mark]').forEach(b => {
+          b.classList.toggle('selected', b.dataset.mark === mark);
         });
       }
-      wireEmojiPicker('#ttt-p1-emojis', '#ttt-p1-letter');
-      wireEmojiPicker('#ttt-p2-emojis', '#ttt-p2-letter');
 
-      stage.querySelector('#ttt-start').onclick = () => {
-        let m1 = (stage.querySelector('#ttt-p1-letter').value || '').trim() || defP1;
-        let m2 = (stage.querySelector('#ttt-p2-letter').value || '').trim() || defP2;
-        m1 = normaliseMark(m1);
-        m2 = normaliseMark(m2);
-        if (m1 === m2) m2 = m1 === 'X' ? 'O' : (m1 === 'O' ? 'X' : 'O');
-        p1 = { name: profile?.name || 'Player 1', mark: m1, isRobot: false };
-        p2 = {
-          name: mode === 'robot' ? 'Robot' : 'Player 2',
-          mark: m2,
-          isRobot: mode === 'robot'
-        };
-        runGame();
-      };
+      // Cross-disable: if Player 1 picks a mark, Player 2 can't pick that same mark
+      // (and vice versa). Letter input still allowed but validated at Start.
+      function syncDisabled() {
+        const sec1 = stage.querySelector('#ttt-p1-section');
+        const sec2 = stage.querySelector('#ttt-p2-section');
+        sec1.querySelectorAll('[data-mark]').forEach(b => {
+          const blocked = !!p2Mark && b.dataset.mark === p2Mark;
+          b.classList.toggle('mark-disabled', blocked);
+          b.disabled = blocked;
+        });
+        sec2.querySelectorAll('[data-mark]').forEach(b => {
+          const blocked = !!p1Mark && b.dataset.mark === p1Mark;
+          b.classList.toggle('mark-disabled', blocked);
+          b.disabled = blocked;
+        });
+      }
+
+      function validate() {
+        const m1 = normaliseMark(p1Mark);
+        const m2 = normaliseMark(p2Mark);
+        const err = stage.querySelector('#ttt-mark-error');
+        const startBtn = stage.querySelector('#ttt-start');
+        const conflict = !!m1 && !!m2 && m1 === m2;
+        if (err) err.style.display = conflict ? 'block' : 'none';
+        if (startBtn) {
+          startBtn.disabled = conflict || !m1 || !m2;
+          startBtn.style.opacity = startBtn.disabled ? 0.55 : 1;
+        }
+      }
+
+      rebuild();
     }
 
     // ---------- step 4: game ----------
