@@ -302,12 +302,34 @@ export const ticTacToe = {
         if (!empties.length) return null;
 
         const diff = gridCfg.diffKey;
+        const my = p2.mark, opp = p1.mark;
 
-        // Easy: pure random
-        if (diff === 'easy') return empties[Math.floor(Math.random() * empties.length)];
+        // Easy = "Beginner Bot": let the kid win.
+        // - Never blocks the kid's winning move (so the kid completes their line).
+        // - Plays its own winning move only ~25% of the time (otherwise stays
+        //   passive). Result: kid wins most 3×3 games but the bot still scores
+        //   the occasional point so it doesn't feel fake.
+        if (diff === 'easy') {
+          if (Math.random() < 0.25) {
+            for (const e of empties) {
+              board[e.r][e.c] = my;
+              const w = findWinningLine();
+              board[e.r][e.c] = null;
+              if (w) return e;
+            }
+          }
+          // Avoid cells that would block the kid's imminent win
+          const nonBlocking = empties.filter(e => {
+            board[e.r][e.c] = opp;
+            const w = findWinningLine();
+            board[e.r][e.c] = null;
+            return !w; // keep cells that DON'T finish kid's line
+          });
+          const pool = nonBlocking.length ? nonBlocking : empties;
+          return pool[Math.floor(Math.random() * pool.length)];
+        }
 
         // Medium / Hard: try to win, then to block, then heuristic
-        const my = p2.mark, opp = p1.mark;
         for (const e of empties) {
           board[e.r][e.c] = my;
           const w = findWinningLine();
@@ -375,10 +397,12 @@ export const ticTacToe = {
         busy = true;
         render(line);
         Audio.win();
-        const isWin = !!winner;
         const stars = winner ? (winner === p1 ? 3 : 1) : 2;
         Storage.addStars(stars);
         Storage.setLevelScore(2, (Storage.getScores()[2]?.high || 0) + (winner === p1 ? 1 : 0));
+
+        // 🎉 Celebrate when a human wins (any non-robot winner).
+        if (winner && !winner.isRobot) launchFireworks();
 
         setTimeout(() => {
           if (cancelled) return;
@@ -392,7 +416,7 @@ export const ticTacToe = {
             onNext:  () => onExit({ next: true }),
             onHome:  () => onExit({ home: true })
           });
-        }, 1100);
+        }, 1400);
       }
     }
   }
@@ -402,4 +426,35 @@ export const ticTacToe = {
 function normaliseMark(s) {
   if (!s) return '';
   return /^[a-zA-Z]+$/.test(s) ? s.toUpperCase() : s;
+}
+
+// 🎉 Confetti / fireworks burst — fixed overlay, removes itself after ~3s.
+// Triggered on human win to make the moment feel like a celebration.
+function launchFireworks() {
+  const overlay = document.createElement('div');
+  overlay.className = 'fireworks-overlay';
+  document.body.appendChild(overlay);
+
+  const symbols = ['🎉','✨','⭐','🌟','💥','🎆','🎇','🎊'];
+  const count = 36;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('span');
+    p.className = 'firework-particle';
+    p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    // start position: spread across width, just above center
+    p.style.left = (Math.random() * 90 + 5) + '%';
+    p.style.top = (40 + Math.random() * 20) + '%';
+    p.style.fontSize = (18 + Math.random() * 22) + 'px';
+    // explosion vector
+    const dx = (Math.random() - 0.5) * 700;
+    const dy = -300 + Math.random() * 200;        // upward burst
+    const fall = 200 + Math.random() * 200;        // gravity drop
+    p.style.setProperty('--dx', dx + 'px');
+    p.style.setProperty('--dy', dy + 'px');
+    p.style.setProperty('--fall', fall + 'px');
+    p.style.animationDelay = (Math.random() * 0.25) + 's';
+    p.style.animationDuration = (1.6 + Math.random() * 0.6) + 's';
+    overlay.appendChild(p);
+  }
+  setTimeout(() => overlay.remove(), 3500);
 }
