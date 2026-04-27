@@ -1,7 +1,7 @@
 # Local-only config for now. CF deploy + secrets wired in next phase.
 # After binding D1 in CF dashboard, paste database_id below before deploying.
 
-name = "playglow-api"
+name = "playglow"
 main = "src/workers/api.js"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
