@@ -1573,3 +1573,33 @@ body::before {
   #app { margin: 8px; min-height: calc(100vh - 16px); }
   .screen { padding: 18px; }
 }
+
+/* ---------- Parent account (email OTP) ---------- */
+.account-chip {
+  border: 2px solid var(--primary);
+  background: var(--primary); color: #fff;
+  font-weight: 700; cursor: pointer;
+  padding: 8px 16px; border-radius: 999px;
+  box-shadow: 0 3px 0 var(--primary-dark);
+}
+.account-chip.signed-in {
+  background: var(--surface); color: var(--primary);
+  box-shadow: none;
+}
+.auth-input {
+  width: 100%; box-sizing: border-box;
+  font-family: inherit; font-size: 18px; font-weight: 600; color: var(--ink);
+  padding: 12px 14px; margin: 14px 0 4px;
+  border: 2px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--surface); outline: none;
+}
+.auth-input:focus { border-color: var(--primary); }
+.auth-code-input {
+  text-align: center; letter-spacing: 10px; font-size: 26px;
+}
+.auth-msg {
+  min-height: 18px; font-size: 13px; font-weight: 600;
+  color: var(--bad); margin: 2px 0 10px;
+}
+.auth-msg.ok { color: var(--good); }
+#auth-overlay .button { width: 100%; margin-top: 8px; }

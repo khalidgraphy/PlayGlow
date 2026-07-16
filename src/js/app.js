@@ -1,5 +1,6 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
+import { API } from './api.js';
 import { runLevel, runCustomLevel, showScreen } from './engine.js';
 import { ticTacToe }              from './games/tictactoe.js';      // id 2 (NEW)
 import { wordFinder }             from './levels/wordfinder.js';    // id 3
@@ -34,7 +35,119 @@ const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 
 function openSettings() {
   syncSettingsUI();
+  syncAccountUI();
   showScreen('lang-screen');
+}
+
+// ---- Parent account (email OTP) ----
+let pendingEmail = '';
+
+function syncAccountUI() {
+  const btn = document.getElementById('account-btn');
+  const desc = document.getElementById('account-desc');
+  if (!btn) return;
+  if (Storage.isSignedIn()) {
+    btn.textContent = 'Sign out';
+    btn.classList.add('signed-in');
+    if (desc) desc.textContent = 'Signed in as ' + (Storage.getAuthEmail() || 'parent');
+  } else {
+    btn.textContent = 'Sign in';
+    btn.classList.remove('signed-in');
+    if (desc) desc.textContent = 'Sign in to save progress across devices';
+  }
+}
+
+function showAuth() {
+  document.getElementById('auth-step-email').classList.remove('hidden');
+  document.getElementById('auth-step-code').classList.add('hidden');
+  document.getElementById('auth-email-msg').textContent = '';
+  document.getElementById('auth-code-msg').textContent = '';
+  const overlay = document.getElementById('auth-overlay');
+  overlay.classList.remove('hidden');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.getElementById('auth-email').focus();
+}
+function hideAuth() {
+  const overlay = document.getElementById('auth-overlay');
+  overlay.classList.add('hidden');
+  overlay.setAttribute('aria-hidden', 'true');
+}
+
+const AUTH_ERRORS = {
+  too_soon: 'Please wait a moment before requesting another code.',
+  rate_limited: 'Too many requests. Please try again later.',
+  send_failed: 'Could not send the email. Please try again.',
+  invalid_email: 'Please enter a valid email.',
+  code_incorrect: 'Incorrect code. Please try again.',
+  code_expired: 'That code expired. Please request a new one.',
+  too_many_attempts: 'Too many tries. Please request a new code.',
+};
+
+function wireAuth() {
+  const accountBtn = document.getElementById('account-btn');
+  if (!accountBtn) return;
+
+  accountBtn.onclick = () => {
+    if (Storage.isSignedIn()) {
+      const t = Storage.getAuthToken();
+      Storage.clearAuth();
+      syncAccountUI();
+      API.logout(t);
+    } else {
+      showAuth();
+    }
+  };
+
+  document.getElementById('auth-send').onclick = async () => {
+    const email = document.getElementById('auth-email').value.trim();
+    const msg = document.getElementById('auth-email-msg');
+    msg.classList.remove('ok');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.textContent = 'Please enter a valid email.'; return; }
+    const btn = document.getElementById('auth-send');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    try {
+      await API.requestOtp(email);
+      pendingEmail = email;
+      document.getElementById('auth-email-echo').textContent = email;
+      document.getElementById('auth-step-email').classList.add('hidden');
+      document.getElementById('auth-step-code').classList.remove('hidden');
+      const codeInput = document.getElementById('auth-code');
+      codeInput.value = ''; codeInput.focus();
+    } catch (e) {
+      msg.textContent = AUTH_ERRORS[e.message] || 'Something went wrong. Please try again.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Send code';
+    }
+  };
+
+  document.getElementById('auth-verify').onclick = async () => {
+    const code = document.getElementById('auth-code').value.trim();
+    const msg = document.getElementById('auth-code-msg');
+    msg.classList.remove('ok');
+    if (!/^\d{6}$/.test(code)) { msg.textContent = 'Enter the 6-digit code.'; return; }
+    const btn = document.getElementById('auth-verify');
+    btn.disabled = true; btn.textContent = 'Verifying...';
+    try {
+      const res = await API.verifyOtp(pendingEmail, code);
+      Storage.setAuth(res.token, res.email);
+      syncAccountUI();
+      hideAuth();
+    } catch (e) {
+      msg.textContent = AUTH_ERRORS[e.message] || 'Could not verify. Please try again.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Verify & sign in';
+    }
+  };
+
+  document.getElementById('auth-resend').onclick = () => {
+    document.getElementById('auth-step-code').classList.add('hidden');
+    document.getElementById('auth-step-email').classList.remove('hidden');
+    document.getElementById('auth-email').focus();
+  };
+  document.getElementById('auth-close').onclick = hideAuth;
+  document.getElementById('auth-overlay').onclick = (e) => {
+    if (e.target.id === 'auth-overlay') hideAuth();
+  };
 }
 
 function syncSettingsUI() {
@@ -123,6 +236,15 @@ function init() {
     const lvl = currentLevel;
     if (lvl) showInfo(displayLabel(lvl), lvl.guide || 'Tap, listen, and learn.');
   };
+
+  wireAuth();
+  // Silently drop a stale/revoked token so the UI doesn't show a false signed-in state.
+  const tok = Storage.getAuthToken();
+  if (tok) {
+    API.me(tok).then(res => {
+      if (!res) { Storage.clearAuth(); syncAccountUI(); }
+    });
+  }
 }
 
 let currentLevel = null;

@@ -12,7 +12,9 @@
     "db:schema": "wrangler d1 execute wordglow --file db/schema.sql",
     "db:seed": "wrangler d1 execute wordglow --file db/seed.sql",
     "db:schema:remote": "wrangler d1 execute wordglow --remote --file db/schema.sql",
-    "db:seed:remote": "wrangler d1 execute wordglow --remote --file db/seed.sql"
+    "db:seed:remote": "wrangler d1 execute wordglow --remote --file db/seed.sql",
+    "db:auth": "wrangler d1 execute wordglow --file db/auth_schema.sql",
+    "db:auth:remote": "wrangler d1 execute wordglow --remote --file db/auth_schema.sql"
   },
   "devDependencies": {
     "vite": "^5.4.0",

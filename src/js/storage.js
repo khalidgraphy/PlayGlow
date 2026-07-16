@@ -13,6 +13,12 @@ const ACTIVE_KEY   = 'playglow:activeProfile'; // id of currently active profile
 // Default secondary is Urdu; parents can switch to Arabic in Settings.
 const SECONDARY_KEY = 'playglow:secondaryLang'; // 'ur' | 'ar'
 
+// Parent account (Phase 1: email OTP login). Bearer token, not a cookie —
+// pages.dev <-> workers.dev is cross-site, so a cookie would be third-party
+// and blocked by iOS Safari. Token is sent as Authorization: Bearer.
+const AUTH_TOKEN_KEY = 'playglow:auth_token';
+const AUTH_EMAIL_KEY = 'playglow:auth_email';
+
 export const Storage = {
   getSessionId() {
     let id = localStorage.getItem(SESSION_KEY);
@@ -77,6 +83,19 @@ export const Storage = {
     localStorage.setItem(PROFILES_KEY, JSON.stringify(all));
     localStorage.setItem(ACTIVE_KEY, id);
     return p;
+  },
+
+  // ---- Parent account (email OTP) ----
+  getAuthToken() { return localStorage.getItem(AUTH_TOKEN_KEY) || null; },
+  getAuthEmail() { return localStorage.getItem(AUTH_EMAIL_KEY) || null; },
+  isSignedIn() { return !!this.getAuthToken(); },
+  setAuth(token, email) {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    localStorage.setItem(AUTH_EMAIL_KEY, email || '');
+  },
+  clearAuth() {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_EMAIL_KEY);
   },
 
   clear() {

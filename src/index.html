@@ -163,6 +163,20 @@
         </p>
       </div>
 
+      <!-- Parent account (email sign-in) -->
+      <div class="settings-section">
+        <div class="settings-row">
+          <div class="settings-label">
+            <div class="settings-title">Parent account</div>
+            <div class="settings-desc" id="account-desc">Sign in to save progress across devices</div>
+          </div>
+          <button id="account-btn" class="chip account-chip">Sign in</button>
+        </div>
+        <p class="lang-hint" style="margin-top:10px">
+          Sign-in is for parents. We email a 6-digit code, no password needed. Kids keep playing with their profile as usual.
+        </p>
+      </div>
+
       <!-- Hidden start button kept for very-first-launch fallback path -->
       <button id="start-btn" class="start-btn hidden" data-lang="en" style="display:none"></button>
     </section>
@@ -239,6 +253,32 @@
       <div class="info-title" id="info-title">How to play</div>
       <div class="info-text" id="info-text"></div>
       <button class="button" id="info-close">Got it</button>
+    </div>
+  </div>
+
+  <!-- Parent sign-in popup (hidden by default) -->
+  <div id="auth-overlay" class="info-overlay hidden" aria-hidden="true">
+    <div class="info-card" role="dialog" aria-modal="true">
+      <div class="info-title">Parent sign-in</div>
+
+      <!-- Step 1: email -->
+      <div id="auth-step-email">
+        <div class="info-text">Enter your email and we'll send a 6-digit code.</div>
+        <input id="auth-email" class="auth-input" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" />
+        <div class="auth-msg" id="auth-email-msg"></div>
+        <button class="button" id="auth-send">Send code</button>
+      </div>
+
+      <!-- Step 2: code -->
+      <div id="auth-step-code" class="hidden">
+        <div class="info-text">Enter the 6-digit code sent to <span id="auth-email-echo"></span>.</div>
+        <input id="auth-code" class="auth-input auth-code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" />
+        <div class="auth-msg" id="auth-code-msg"></div>
+        <button class="button" id="auth-verify">Verify &amp; sign in</button>
+        <button class="button ghost" id="auth-resend">Use a different email</button>
+      </div>
+
+      <button class="button ghost" id="auth-close">Cancel</button>
     </div>
   </div>
 

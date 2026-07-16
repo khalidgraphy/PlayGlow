@@ -3,6 +3,7 @@ import { handleWords } from './handlers/words.js';
 import { handleRound } from './handlers/round.js';
 import { handleByLetter, handleLetters } from './handlers/explore.js';
 import { handleGetProgress, handlePostProgress } from './handlers/progress.js';
+import { handleRequestOtp, handleVerifyOtp, handleMe, handleLogout } from './handlers/auth.js';
 
 export default {
   async fetch(request, env) {
@@ -32,6 +33,18 @@ export default {
       }
       if (path === '/api/progress' && request.method === 'POST') {
         return handlePostProgress(request, env);
+      }
+      if (path === '/api/auth/request-otp' && request.method === 'POST') {
+        return handleRequestOtp(request, env);
+      }
+      if (path === '/api/auth/verify-otp' && request.method === 'POST') {
+        return handleVerifyOtp(request, env);
+      }
+      if (path === '/api/auth/me' && request.method === 'GET') {
+        return handleMe(request, env);
+      }
+      if (path === '/api/auth/logout' && request.method === 'POST') {
+        return handleLogout(request, env);
       }
       return json({ error: 'not found', path }, { status: 404 }, request);
     } catch (err) {

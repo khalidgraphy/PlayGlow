@@ -26,5 +26,44 @@ export const API = {
   async health() {
     try { const r = await fetch(`${BASE}/health`); return r.ok ? r.json() : null; }
     catch { return null; }
+  },
+
+  // ---- Parent account (email OTP) ----
+  async requestOtp(email) {
+    const r = await fetch(`${BASE}/auth/request-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'request_failed');
+    return data;
+  },
+
+  async verifyOtp(email, code) {
+    const r = await fetch(`${BASE}/auth/verify-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code })
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'verify_failed');
+    return data; // { ok, token, email }
+  },
+
+  async me(token) {
+    const r = await fetch(`${BASE}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return r.ok ? r.json() : null;
+  },
+
+  async logout(token) {
+    try {
+      await fetch(`${BASE}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+    } catch { /* best-effort */ }
   }
 };
