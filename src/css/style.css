@@ -228,6 +228,7 @@ body::before {
   font-size: 13px; font-weight: 700; color: var(--ink);
   max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.profile-chip .profile-name.chip-signin { color: var(--brand, #6b3fd4); }
 
 @media (max-width: 380px) {
   .avatar-grid { grid-template-columns: repeat(6, 1fr); }

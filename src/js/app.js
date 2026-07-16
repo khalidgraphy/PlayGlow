@@ -45,15 +45,32 @@ let pendingEmail = '';
 function syncAccountUI() {
   const btn = document.getElementById('account-btn');
   const desc = document.getElementById('account-desc');
-  if (!btn) return;
+  if (btn) {
+    if (Storage.isSignedIn()) {
+      btn.textContent = 'Sign out';
+      btn.classList.add('signed-in');
+      if (desc) desc.textContent = 'Signed in as ' + (Storage.getAuthEmail() || 'parent');
+    } else {
+      btn.textContent = 'Sign in';
+      btn.classList.remove('signed-in');
+      if (desc) desc.textContent = 'Sign in to save progress across devices';
+    }
+  }
+  syncProfileChip();
+}
+
+// Home profile chip doubles as the sign-in entry point when signed out
+// (kids can still play without it). Signed in → shows the child's name.
+function syncProfileChip() {
+  const nameEl = document.getElementById('profile-name');
+  if (!nameEl) return;
+  const profile = Storage.getActiveProfile();
   if (Storage.isSignedIn()) {
-    btn.textContent = 'Sign out';
-    btn.classList.add('signed-in');
-    if (desc) desc.textContent = 'Signed in as ' + (Storage.getAuthEmail() || 'parent');
+    if (profile) nameEl.textContent = profile.name;
+    nameEl.classList.remove('chip-signin');
   } else {
-    btn.textContent = 'Sign in';
-    btn.classList.remove('signed-in');
-    if (desc) desc.textContent = 'Sign in to save progress across devices';
+    nameEl.textContent = 'Sign in';
+    nameEl.classList.add('chip-signin');
   }
 }
 
@@ -204,12 +221,15 @@ function init() {
     };
   });
 
-  // Profile chip (Phase 2 will open a picker; for now it just shows the name)
+  // Profile chip: signed out → open sign-in (optional, encourages saving
+  // progress); signed in → show profile + account info.
   const profChip = document.getElementById('profile-chip');
   if (profChip) profChip.onclick = () => {
+    if (!Storage.isSignedIn()) { showAuth(); return; }
     const p = Storage.getActiveProfile();
+    const acct = Storage.getAuthEmail();
     if (p) showInfo(`${p.avatar} ${p.name}`,
-      `Age ${p.age}${p.gender ? ' · ' + p.gender : ''} · keep playing! More profiles + edit/delete coming soon.`);
+      `Age ${p.age}${p.gender ? ' · ' + p.gender : ''} · Progress is being saved${acct ? ' to ' + acct : ''}. Manage your account in Settings (🌐).`);
   };
 
   document.getElementById('lang-switch').onclick = () => openSettings();
@@ -317,6 +337,7 @@ function renderHome() {
     document.getElementById('profile-name').textContent = profile.name;
     document.getElementById('home-greeting').textContent = `Hi, ${profile.name}! Pick an Activity`;
   }
+  syncProfileChip();
 
   const last = Storage.getLastLevel();
   const scores = Storage.getScores();
