@@ -31,6 +31,28 @@ const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, thr
 // Routing lookup: parent + sub-levels + everything
 const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap];
 
+// Home categories (tabbed). Each activity maps to exactly one bucket.
+const CATEGORIES = [
+  { key: 'learning',    label: 'Learning',    emoji: '📚' },
+  { key: 'edutainment', label: 'Edutainment', emoji: '🎨' },
+  { key: 'games',       label: 'Games',       emoji: '🎮' },
+  { key: 'tools',       label: 'Tools',       emoji: '🧰' },
+];
+const LEVEL_CATEGORY = {
+  1: 'edutainment',  // ABC Crush
+  2: 'games',        // Tic Tac Toe
+  3: 'tools',        // Word Finder (A–Z word explorer)
+  4: 'learning',     // Hear & Tap
+  5: 'learning',     // Spell It
+  6: 'learning',     // Word Cards
+  7: 'learning',     // First Letter
+  8: 'learning',     // Match Translation
+  9: 'learning',     // Missing Letter
+  10: 'edutainment', // Color Trap
+};
+function categoryOf(lvl) { return LEVEL_CATEGORY[lvl.id] || 'learning'; }
+let activeCategory = 'learning';
+
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 
 function openSettings() {
@@ -342,10 +364,37 @@ function renderHome() {
   }
   syncProfileChip();
 
+  renderHomeTabs();
+  renderLevelGrid();
+  showScreen('home-screen');
+}
+
+// Category tab bar — switches which activities the grid shows.
+function renderHomeTabs() {
+  const bar = document.getElementById('home-tabs');
+  if (!bar) return;
+  bar.innerHTML = CATEGORIES.map(c => {
+    const active = c.key === activeCategory ? ' active' : '';
+    return `<button class="home-tab${active}" data-cat="${c.key}" type="button">` +
+           `<span class="home-tab-emoji">${c.emoji}</span>${c.label}</button>`;
+  }).join('');
+  bar.querySelectorAll('.home-tab').forEach(tab => {
+    tab.onclick = () => {
+      if (activeCategory === tab.dataset.cat) return;
+      activeCategory = tab.dataset.cat;
+      renderHomeTabs();
+      renderLevelGrid();
+    };
+  });
+}
+
+// Grid of activity cards for the active category.
+function renderLevelGrid() {
   const last = Storage.getLastLevel();
   const scores = Storage.getScores();
   const grid = document.getElementById('level-grid');
-  grid.innerHTML = HOME_LEVELS.map(lvl => {
+  const items = HOME_LEVELS.filter(lvl => categoryOf(lvl) === activeCategory);
+  grid.innerHTML = items.map(lvl => {
     const s = scores[lvl.id] || { high: 0, last: 0 };
     const recommended = lvl.id === last ? ' recommended' : '';
     return `
@@ -378,8 +427,6 @@ function renderHome() {
       if (lvl) showInfo(`Activity ${lvl.id}: ${lvl.name}`, lvl.guide || '');
     };
   });
-
-  showScreen('home-screen');
 }
 
 function openSubs() {

@@ -1577,6 +1577,40 @@ body::before {
   transition: color 0.15s;
 }
 .app-footer a:hover { color: var(--accent); }
+.app-footer .footer-credit {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0 auto;
+}
+.app-footer .footer-credit a {
+  font-style: normal;
+  color: var(--brand, #6b3fd4);
+  font-weight: 700;
+}
+
+/* Home category tabs */
+.home-tabs {
+  display: flex; gap: 8px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 2px 2px 12px; margin: 4px 0 0;
+  scrollbar-width: none;
+}
+.home-tabs::-webkit-scrollbar { display: none; }
+.home-tab {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 999px;
+  border: 2px solid var(--line); background: #fff;
+  font-size: 13px; font-weight: 700; color: var(--ink-soft);
+  cursor: pointer; white-space: nowrap;
+  transition: transform .06s ease, background .15s ease, color .15s ease;
+}
+.home-tab .home-tab-emoji { font-size: 15px; line-height: 1; }
+.home-tab.active {
+  background: var(--brand, #6b3fd4); color: #fff;
+  border-color: var(--brand, #6b3fd4);
+}
+.home-tab:active { transform: scale(0.96); }
 
 @media (max-width: 380px) {
   .emoji-card { font-size: 90px; min-height: 130px; padding: 16px; }
