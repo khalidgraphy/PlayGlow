@@ -258,6 +258,9 @@ function init() {
   };
 
   wireAuth();
+  // Parent sign-in link on the first-run setup screen (optional; kids can just play).
+  const pfSignin = document.getElementById('pf-signin-link');
+  if (pfSignin) pfSignin.onclick = () => showAuth();
   // Silently drop a stale/revoked token so the UI doesn't show a false signed-in state.
   const tok = Storage.getAuthToken();
   if (tok) {

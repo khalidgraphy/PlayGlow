@@ -200,6 +200,18 @@ body::before {
   padding: 8px 10px; border-radius: 10px;
 }
 
+.pf-signin-link {
+  display: block; width: 100%;
+  background: none; border: none; cursor: pointer;
+  margin-top: 12px; padding: 6px;
+  font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  text-align: center;
+}
+.pf-signin-link span {
+  color: var(--brand, #6b3fd4); text-decoration: underline;
+}
+.pf-signin-link:active { transform: scale(0.98); }
+
 .start-btn:disabled {
   cursor: default;
   background: var(--line); color: var(--muted);
