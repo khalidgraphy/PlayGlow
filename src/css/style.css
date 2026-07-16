@@ -1741,3 +1741,66 @@ body::before {
   .ww-tile { width: 46px; height: 46px; font-size: 21px; }
   .ww-box { width: 26px; height: 30px; font-size: 17px; }
 }
+
+/* ===== Tasbeeh Counter (Activity 12) ===== */
+.tb-root { display: flex; flex-direction: column; gap: 16px; align-items: center; flex: 1; }
+.tb-stats { display: flex; gap: 10px; justify-content: center; }
+
+.tb-dial {
+  width: 230px; height: 230px; max-width: 72vw; max-height: 72vw;
+  border-radius: 50%; margin: 6px auto 2px;
+  display: flex; align-items: center; justify-content: center;
+  background: conic-gradient(var(--brand, #6b3fd4) 0%, #e9e4fa 0%);
+  transition: background .25s ease;
+}
+.tb-dial.complete { animation: tb-pop 0.5s ease; }
+@keyframes tb-pop { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+
+.tb-button {
+  width: 86%; height: 86%; border-radius: 50%; border: none;
+  background: #fff; box-shadow: 0 6px 18px rgba(107,63,212,0.18);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent;
+  transition: transform .05s ease;
+}
+.tb-button:active { transform: scale(0.97); }
+.tb-count { font-size: 68px; font-weight: 800; color: var(--brand, #6b3fd4); line-height: 1; }
+.tb-tap-hint { font-size: 12px; font-weight: 700; letter-spacing: 1px; color: var(--muted); margin-top: 6px; text-transform: uppercase; }
+
+.tb-targets { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.tb-chip {
+  min-width: 52px; border: 2px solid var(--line); background: #fff; color: var(--ink);
+  border-radius: 999px; padding: 8px 14px; font-size: 15px; font-weight: 800;
+  cursor: pointer; font-family: inherit;
+}
+.tb-chip:active { transform: scale(0.96); }
+.tb-chip.active { background: var(--brand, #6b3fd4); color: #fff; border-color: var(--brand, #6b3fd4); }
+
+.tb-actions { display: flex; gap: 10px; justify-content: center; }
+.tb-actions .ww-ctrl.confirm { background: #FFE0E0; border-color: #FF9B9B; color: #B00020; }
+
+/* Tasbeeh — custom target row */
+.tb-root { position: relative; }
+.tb-custom-row { display: flex; gap: 8px; justify-content: center; align-items: center; }
+.tb-custom-input {
+  width: 140px; padding: 9px 12px; border: 2px solid var(--line); border-radius: 12px;
+  font-size: 16px; font-weight: 700; color: var(--ink); font-family: inherit; text-align: center;
+}
+.tb-custom-input:focus { outline: none; border-color: var(--brand, #6b3fd4); }
+
+/* Tasbeeh — reset confirm dialog (separate from Reset, not a double-tap) */
+.tb-confirm {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(31, 36, 48, 0.35);
+}
+.tb-confirm-card {
+  background: #fff; border-radius: 18px; padding: 20px 18px;
+  width: min(300px, 86%); text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22);
+}
+.tb-confirm-text { font-size: 16px; font-weight: 800; color: var(--ink); margin-bottom: 16px; }
+.tb-confirm-btns { display: flex; gap: 10px; justify-content: center; }
+.tb-confirm-btns .ww-ctrl { min-width: 96px; }
+.ww-ctrl.tb-danger { background: #E63946; border-color: #E63946; color: #fff; }
+.ww-ctrl.tb-danger:disabled { opacity: .5; cursor: default; }

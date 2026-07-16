@@ -12,6 +12,7 @@ import { level5 as matchTrans }   from './levels/level5.js';        // id 8
 import { missingLetter }          from './levels/missingletter.js'; // id 9
 import { colorTrap }              from './games/colortrap.js';      // id 10 (was id 2; Daily Word removed)
 import { wordWheel }              from './games/wordwheel.js';      // id 11 (NEW)
+import { tasbeeh }                from './games/tasbeeh.js';        // id 12 (NEW, Tools)
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -28,9 +29,9 @@ const LEVEL1_PARENT = {
 
 // Display order on home — matches numeric id sequence (1..10)
 // (Daily Word removed; Color Trap moved from id 2 → id 10; Tic Tac Toe new at id 2)
-const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel];
+const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh];
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel];
+const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh];
 
 // Home categories (tabbed). Each activity maps to exactly one bucket.
 const CATEGORIES = [
@@ -51,11 +52,33 @@ const LEVEL_CATEGORY = {
   9: 'learning',     // Missing Letter
   10: 'edutainment', // Color Trap
   11: 'edutainment', // Word Wheel
+  12: 'tools',        // Tasbeeh Counter
 };
 function categoryOf(lvl) { return LEVEL_CATEGORY[lvl.id] || 'learning'; }
 let activeCategory = 'learning';
 
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
+
+// Bump on each notable release so users can see they're current in Settings.
+const APP_VERSION = 'v4';
+
+// Force the newest version: drop the service worker + caches, then reload from
+// network. The nuclear option for stuck PWAs (esp. iOS home-screen installs).
+async function forceUpdate() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (e) {
+    console.warn('forceUpdate cleanup failed', e);
+  }
+  location.reload();
+}
 
 function openSettings() {
   syncSettingsUI();
@@ -285,6 +308,16 @@ function init() {
   // Parent sign-in link on the first-run setup screen (optional; kids can just play).
   const pfSignin = document.getElementById('pf-signin-link');
   if (pfSignin) pfSignin.onclick = () => showAuth();
+
+  // App updates: show version + a force-refresh button for stuck PWAs.
+  const versionEl = document.getElementById('app-version');
+  if (versionEl) versionEl.textContent = `Version ${APP_VERSION} · tap Refresh for the newest`;
+  const refreshBtn = document.getElementById('refresh-app-btn');
+  if (refreshBtn) refreshBtn.onclick = () => {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Updating…';
+    forceUpdate();
+  };
   // Silently drop a stale/revoked token so the UI doesn't show a false signed-in state.
   const tok = Storage.getAuthToken();
   if (tok) {
