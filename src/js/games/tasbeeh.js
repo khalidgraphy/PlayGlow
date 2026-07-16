@@ -47,13 +47,6 @@ export const tasbeeh = {
           <div class="hud-pill"><span class="hud-label">TARGET</span><span class="hud-value" id="tb-target">33</span></div>
         </div>
 
-        <div class="tb-dial" id="tb-dial">
-          <button class="tb-button" id="tb-tap" aria-label="Count one">
-            <span class="tb-count" id="tb-count">0</span>
-            <span class="tb-tap-hint">tap to count</span>
-          </button>
-        </div>
-
         <div class="tb-targets" id="tb-targets">
           ${TARGETS.map(t => `<button class="tb-chip" data-target="${t.value}">${t.label}</button>`).join('')}
           <button class="tb-chip" id="tb-custom-chip">✏️ Custom</button>
@@ -63,6 +56,15 @@ export const tasbeeh = {
           <input type="number" inputmode="numeric" min="1" max="100000" id="tb-custom-input"
                  class="tb-custom-input" placeholder="1 – 100000" />
           <button class="ww-ctrl" id="tb-custom-set">Set</button>
+        </div>
+
+        <div class="tb-dial-wrap">
+          <div class="tb-dial" id="tb-dial">
+            <button class="tb-button" id="tb-tap" aria-label="Count one">
+              <span class="tb-count" id="tb-count">0</span>
+              <span class="tb-tap-hint">tap to count</span>
+            </button>
+          </div>
         </div>
 
         <div class="tb-actions">

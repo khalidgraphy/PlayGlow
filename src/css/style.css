@@ -1776,7 +1776,16 @@ body::before {
 .tb-chip:active { transform: scale(0.96); }
 .tb-chip.active { background: var(--brand, #6b3fd4); color: #fff; border-color: var(--brand, #6b3fd4); }
 
-.tb-actions { display: flex; gap: 10px; justify-content: center; }
+/* Circle sits in the vertical center; actions pinned to the bottom with a gap. */
+.tb-dial-wrap {
+  flex: 1; width: 100%; min-height: 210px;
+  display: flex; align-items: center; justify-content: center;
+}
+.tb-actions {
+  display: flex; gap: 14px; justify-content: center;
+  margin-top: auto; padding-top: 10px; padding-bottom: 6px;
+}
+.tb-actions .ww-ctrl { min-width: 96px; padding: 11px 18px; }
 .tb-actions .ww-ctrl.confirm { background: #FFE0E0; border-color: #FF9B9B; color: #B00020; }
 
 /* Tasbeeh — custom target row */
@@ -1804,3 +1813,15 @@ body::before {
 .tb-confirm-btns .ww-ctrl { min-width: 96px; }
 .ww-ctrl.tb-danger { background: #E63946; border-color: #E63946; color: #fff; }
 .ww-ctrl.tb-danger:disabled { opacity: .5; cursor: default; }
+
+/* Word Wheel — connecting line for press-and-drag tracing */
+.ww-wheel { touch-action: none; }
+.ww-lines {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  pointer-events: none; overflow: visible; z-index: 1;
+}
+.ww-lines polyline {
+  fill: none; stroke: var(--brand, #6b3fd4); stroke-width: 2.6;
+  stroke-linejoin: round; stroke-linecap: round; opacity: .8;
+}
+.ww-tile { z-index: 2; }

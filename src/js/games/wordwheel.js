@@ -83,6 +83,8 @@ export const wordWheel = {
       let hintsUsed = 0;
       let locked = false;               // brief input lock during feedback
       let tiles = shuffle([...lvl.ring].map((ch, i) => ({ ch, id: i, used: false })));
+      let tilePos = [];                 // {x,y}% per tile, for the connecting line
+      let dragging = false;             // true while a press-and-drag trace is active
 
       stage.innerHTML = `
         <div class="ww-root">
@@ -143,25 +145,39 @@ export const wordWheel = {
       function renderCurrent() {
         currentEl.innerHTML = current.length
           ? current.map(c => `<span class="ww-cur-tile">${esc(c.ch)}</span>`).join('')
-          : `<span class="ww-cur-hint">Tap letters to spell a word</span>`;
+          : `<span class="ww-cur-hint">Tap or swipe letters to spell</span>`;
       }
 
       function renderWheel() {
         const n = tiles.length;
-        const R = 42; // % radius within the square wheel
-        wheelEl.innerHTML = tiles.map((t, i) => {
+        const R = 40; // % radius within the square wheel
+        tilePos = [];
+        const btns = tiles.map((t, i) => {
           const angle = (i / n) * 2 * Math.PI - Math.PI / 2; // start at top
           const x = 50 + R * Math.cos(angle);
           const y = 50 + R * Math.sin(angle);
+          tilePos[i] = { x, y };
           return `<button class="ww-tile${t.used ? ' used' : ''}" data-idx="${i}"
                     style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%">${esc(t.ch)}</button>`;
         }).join('');
-        wheelEl.querySelectorAll('.ww-tile').forEach(b => {
-          b.onclick = () => tapTile(parseInt(b.dataset.idx, 10));
-        });
+        // SVG line sits under the tiles and connects the letters as they're traced.
+        wheelEl.innerHTML =
+          `<svg class="ww-lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+             <polyline id="ww-line" points="" /></svg>` + btns;
+        drawLines();
       }
 
-      function tapTile(idx) {
+      function drawLines() {
+        const line = wheelEl.querySelector('#ww-line');
+        if (!line) return;
+        line.setAttribute('points',
+          current.map(c => tilePos[c.tileIdx]).filter(Boolean)
+                 .map(p => `${p.x},${p.y}`).join(' '));
+      }
+
+      // Add one letter (used by tap, drag, and hint). Guards against re-use and
+      // the brief lock during found/wrong feedback.
+      function addTile(idx) {
         if (locked) return;
         const t = tiles[idx];
         if (!t || t.used) return;
@@ -170,6 +186,33 @@ export const wordWheel = {
         renderCurrent(); renderWheel();
         checkCurrent();
       }
+
+      // ---- Pointer input: tap a tile, or press-and-drag a line across tiles ----
+      function tileIdxAt(x, y) {
+        const el = document.elementFromPoint(x, y);
+        const tile = el && el.closest ? el.closest('.ww-tile') : null;
+        if (!tile || !wheelEl.contains(tile)) return -1;
+        return parseInt(tile.dataset.idx, 10);
+      }
+      wheelEl.addEventListener('pointerdown', (e) => {
+        const idx = tileIdxAt(e.clientX, e.clientY);
+        if (idx === -1) return;
+        dragging = true;
+        try { wheelEl.setPointerCapture(e.pointerId); } catch {}
+        e.preventDefault();
+        addTile(idx);
+      });
+      wheelEl.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        const idx = tileIdxAt(e.clientX, e.clientY);
+        if (idx !== -1) { e.preventDefault(); addTile(idx); }
+      });
+      const endDrag = (e) => {
+        dragging = false;
+        try { wheelEl.releasePointerCapture(e.pointerId); } catch {}
+      };
+      wheelEl.addEventListener('pointerup', endDrag);
+      wheelEl.addEventListener('pointercancel', endDrag);
 
       function backspace() {
         if (locked || !current.length) return;
@@ -238,7 +281,7 @@ export const wordWheel = {
         const idx = tiles.findIndex(t => !t.used && t.ch === nextChar);
         if (idx === -1) return;
         hintsUsed += 1;
-        tapTile(idx);
+        addTile(idx);
       }
 
       function finishLevel() {
