@@ -1647,3 +1647,97 @@ body::before {
 }
 .auth-msg.ok { color: var(--good); }
 #auth-overlay .button { width: 100%; margin-top: 8px; }
+
+/* ===== Word Wheel (Activity 11) ===== */
+.ww-root { display: flex; flex-direction: column; gap: 14px; flex: 1; }
+
+/* Level picker */
+.ww-pick-title { font-size: 20px; font-weight: 800; text-align: center; color: var(--ink); margin: 4px 0; }
+.ww-level-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ww-level-card {
+  background: #fff; border: 2px solid var(--line); border-radius: 16px;
+  padding: 14px 10px; cursor: pointer; text-align: center;
+  display: flex; flex-direction: column; gap: 4px; align-items: center;
+  transition: transform .06s ease, border-color .15s ease; font-family: inherit;
+}
+.ww-level-card:active { transform: scale(0.97); }
+.ww-level-num { font-size: 16px; font-weight: 800; color: var(--brand, #6b3fd4); }
+.ww-level-len { font-size: 12px; color: var(--ink-soft); }
+.ww-level-stars { font-size: 13px; letter-spacing: 1px; color: #FFB300; }
+
+/* HUD */
+.ww-hud { display: flex; gap: 10px; justify-content: center; }
+
+/* Slots (target words) */
+.ww-slots { display: flex; flex-direction: column; gap: 10px; }
+.ww-slot-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; border-radius: 14px; background: var(--bg);
+  border: 2px solid transparent;
+}
+.ww-slot-row.found { background: #EEFBF1; border-color: #B9EBC7; }
+.ww-clue { font-size: 24px; line-height: 1; }
+.ww-boxes { display: inline-flex; gap: 5px; }
+.ww-box {
+  width: 30px; height: 34px; border-radius: 8px;
+  border: 2px solid var(--line); background: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 19px; font-weight: 800; color: var(--ink); text-transform: uppercase;
+}
+.ww-box.filled { background: #DCF5E3; border-color: #7FD79A; }
+.ww-meaning { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.ww-meaning .ww-en { font-weight: 800; color: var(--ink); font-size: 14px; }
+.ww-meaning .ww-ur { font-weight: 700; color: var(--ink); font-size: 16px; }
+.ww-meaning .ww-dot { color: var(--muted); }
+.ww-say {
+  background: #fff; border: 1.5px solid var(--line);
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 13px;
+}
+.ww-say:active { transform: scale(0.9); }
+
+/* Current spelling */
+.ww-current {
+  min-height: 44px; display: flex; align-items: center; justify-content: center;
+  gap: 6px; flex-wrap: wrap;
+}
+.ww-cur-tile {
+  min-width: 34px; height: 40px; padding: 0 8px; border-radius: 10px;
+  background: var(--brand, #6b3fd4); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800; text-transform: uppercase;
+}
+.ww-cur-hint { color: var(--muted); font-size: 13px; }
+.ww-current.shake { animation: shake 0.4s ease; }
+
+/* Controls */
+.ww-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.ww-ctrl {
+  border: 2px solid var(--line); background: #fff; color: var(--ink);
+  border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+.ww-ctrl:active { transform: scale(0.96); }
+.ww-hint { background: #FFF6D9; border-color: #F5D97A; }
+
+/* Wheel */
+.ww-wheel {
+  position: relative; width: 100%; max-width: 280px; margin: 4px auto 8px;
+  aspect-ratio: 1 / 1;
+  background: radial-gradient(circle at 50% 50%, #F4F1FF 0%, #EBE6FB 70%);
+  border-radius: 50%;
+}
+.ww-tile {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 52px; height: 52px; border-radius: 50%;
+  border: none; background: #fff; box-shadow: 0 3px 0 rgba(107,63,212,0.18);
+  color: var(--ink); font-size: 24px; font-weight: 800; text-transform: uppercase;
+  cursor: pointer; font-family: inherit;
+  transition: background .12s ease, opacity .12s ease;
+}
+.ww-tile:active { transform: translate(-50%, -50%) scale(0.92); }
+.ww-tile.used { background: #D8D2EC; color: #9a93b8; opacity: .55; box-shadow: none; }
+
+@media (max-width: 380px) {
+  .ww-tile { width: 46px; height: 46px; font-size: 21px; }
+  .ww-box { width: 26px; height: 30px; font-size: 17px; }
+}
