@@ -14,6 +14,7 @@ import { colorTrap }              from './games/colortrap.js';      // id 10 (wa
 import { wordWheel }              from './games/wordwheel.js';      // id 11 (NEW)
 import { tasbeeh }                from './games/tasbeeh.js';        // id 12 (NEW, Tools)
 import { wildCards }              from './games/wildcards.js';      // id 13 (NEW, Games)
+import { snakesLadders }          from './games/snakesladders.js';  // id 14 (NEW, Games)
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -30,9 +31,9 @@ const LEVEL1_PARENT = {
 
 // Display order on home — matches numeric id sequence (1..10)
 // (Daily Word removed; Color Trap moved from id 2 → id 10; Tic Tac Toe new at id 2)
-const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards];
+const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders];
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards];
+const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders];
 
 // Home categories (tabbed). Each activity maps to exactly one bucket.
 const CATEGORIES = [
@@ -55,6 +56,7 @@ const LEVEL_CATEGORY = {
   11: 'edutainment', // Word Wheel
   12: 'tools',        // Tasbeeh Counter
   13: 'games',        // Wild Cards
+  14: 'games',        // Snakes & Ladders
 };
 function categoryOf(lvl) { return LEVEL_CATEGORY[lvl.id] || 'learning'; }
 let activeCategory = 'learning';
