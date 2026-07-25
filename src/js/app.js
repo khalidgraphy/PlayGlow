@@ -64,7 +64,7 @@ let activeCategory = 'learning';
 const LANG_LABEL = { en: 'EN', ur: 'اردو', ar: 'عربي' };
 
 // Bump on each notable release so users can see they're current in Settings.
-const APP_VERSION = 'v4';
+const APP_VERSION = 'v5';
 
 // Force the newest version: drop the service worker + caches, then reload from
 // network. The nuclear option for stuck PWAs (esp. iOS home-screen installs).
@@ -539,9 +539,24 @@ function handleExit(currentId) {
   };
 }
 
+// Service worker + auto-update: on each launch we register, then actively
+// check for a newer version. Our SW calls skipWaiting()+clients.claim(), so a
+// new build takes control and fires 'controllerchange' — at which point we
+// reload ONCE to swap every user onto the latest version automatically.
+// Guarded so the very first install (no prior controller) does not reload.
 if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController || reloading) return; // skip on first install
+    reloading = true;
+    location.reload();
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(e => console.warn('sw register failed', e));
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.update();                                  // check for a new version now
+      setInterval(() => reg.update(), 60 * 60 * 1000); // and hourly while open
+    }).catch(e => console.warn('sw register failed', e));
   });
 }
 
