@@ -37,6 +37,17 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 }
 
+// Pick a fresh puzzle for a level each open, avoiding an immediate repeat.
+const _lastPuzzle = {}; // level -> last shown puzzle index
+function pickPuzzle(lvl) {
+  const n = lvl.puzzles.length;
+  if (n === 1) return lvl.puzzles[0];
+  let i;
+  do { i = Math.floor(Math.random() * n); } while (i === _lastPuzzle[lvl.level]);
+  _lastPuzzle[lvl.level] = i;
+  return lvl.puzzles[i];
+}
+
 export const wordWheel = {
   id: 11,
   name: 'Word Wheel',
@@ -78,11 +89,17 @@ export const wordWheel = {
 
     // ---------- Play one level ----------
     function playLevel(lvl) {
+      const puzzle = pickPuzzle(lvl);   // fresh random word-set each open
+      const ring = puzzle.ring;
+      const words = puzzle.words;
+      const len = lvl.len;
+      const showEmoji = !!lvl.emojiClue; // picture clues only on Level 1
+
       const found = new Set();          // en words already found
       let current = [];                 // [{ ch, tileIdx }]
       let hintsUsed = 0;
       let locked = false;               // brief input lock during feedback
-      let tiles = shuffle([...lvl.ring].map((ch, i) => ({ ch, id: i, used: false })));
+      let tiles = shuffle([...ring].map((ch, i) => ({ ch, id: i, used: false })));
       let tilePos = [];                 // {x,y}% per tile, for the connecting line
       let dragging = false;             // true while a press-and-drag trace is active
 
@@ -90,7 +107,7 @@ export const wordWheel = {
         <div class="ww-root">
           <div class="ww-hud">
             <div class="hud-pill"><span class="hud-label">LEVEL</span><span class="hud-value">${lvl.level}</span></div>
-            <div class="hud-pill"><span class="hud-label">FOUND</span><span class="hud-value" id="ww-found">0/${lvl.words.length}</span></div>
+            <div class="hud-pill"><span class="hud-label">FOUND</span><span class="hud-value" id="ww-found">0/${words.length}</span></div>
           </div>
           <div class="ww-slots" id="ww-slots"></div>
           <div class="ww-current" id="ww-current"></div>
@@ -116,7 +133,7 @@ export const wordWheel = {
       renderSlots(); renderCurrent(); renderWheel();
 
       function renderSlots() {
-        slotsEl.innerHTML = lvl.words.map(w => {
+        slotsEl.innerHTML = words.map(w => {
           const isFound = found.has(w.en);
           const boxes = [...w.en].map(ch =>
             `<span class="ww-box${isFound ? ' filled' : ''}">${isFound ? esc(ch) : ''}</span>`
@@ -130,9 +147,10 @@ export const wordWheel = {
                  <button class="ww-say" data-say="${esc(w.ur)}" data-lang="ur" aria-label="Hear Urdu">🔊</button>
                </div>`
             : '';
+          const clue = showEmoji ? `<span class="ww-clue">${w.emoji}</span>` : '';
           return `
-            <div class="ww-slot-row${isFound ? ' found' : ''}">
-              <span class="ww-clue">${w.emoji}</span>
+            <div class="ww-slot-row${isFound ? ' found' : ''}${showEmoji ? '' : ' no-clue'}">
+              ${clue}
               <span class="ww-boxes">${boxes}</span>
               ${meaning}
             </div>`;
@@ -231,9 +249,9 @@ export const wordWheel = {
 
       function checkCurrent() {
         const w = word();
-        const match = lvl.words.find(t => !found.has(t.en) && t.en === w);
+        const match = words.find(t => !found.has(t.en) && t.en === w);
         if (match) return onWordFound(match);
-        if (w.length >= lvl.len) return onWrong();
+        if (w.length >= len) return onWrong();
       }
 
       function onWordFound(w) {
@@ -243,7 +261,7 @@ export const wordWheel = {
         Storage.addStars(1);
         Storage.setLevelScore(11, found.size * STAR_PER_WORD);
         renderSlots();
-        foundEl.textContent = `${found.size}/${lvl.words.length}`;
+        foundEl.textContent = `${found.size}/${words.length}`;
         // Announce English then Urdu meaning.
         Audio.speakSequence([{ text: w.en, lang: 'en' }, { text: w.ur, lang: 'ur' }]);
         setTimeout(() => {
@@ -251,7 +269,7 @@ export const wordWheel = {
           tiles.forEach(t => t.used = false);
           renderCurrent(); renderWheel();
           locked = false;
-          if (found.size === lvl.words.length) finishLevel();
+          if (found.size === words.length) finishLevel();
         }, 700);
       }
 
@@ -270,10 +288,10 @@ export const wordWheel = {
         if (locked) return;
         // Prefer completing the word the current letters already start.
         const w = word();
-        let target = lvl.words.find(t => !found.has(t.en) && t.en.startsWith(w) && w.length < t.en.length);
+        let target = words.find(t => !found.has(t.en) && t.en.startsWith(w) && w.length < t.en.length);
         if (!target) {
           // Restart toward the first unfound word.
-          target = lvl.words.find(t => !found.has(t.en));
+          target = words.find(t => !found.has(t.en));
           if (!target) return;
           clearCurrent();
         }
@@ -293,7 +311,7 @@ export const wordWheel = {
         showDone({
           title: 'Level Cleared!',
           stars,
-          summary: `Level ${lvl.level} done · ${lvl.words.length} words · ${hintsUsed} hint${hintsUsed === 1 ? '' : 's'} · Lifetime ⭐ ${Storage.getStars()}`,
+          summary: `Level ${lvl.level} done · ${words.length} words · ${hintsUsed} hint${hintsUsed === 1 ? '' : 's'} · Lifetime ⭐ ${Storage.getStars()}`,
           onAgain: () => { showScreenGame(); playLevel(lvl); },
           onNext: nextLvl ? () => { showScreenGame(); playLevel(nextLvl); } : () => { showScreenGame(); showLevelPicker(); },
           onHome: () => onExit({ home: true })
