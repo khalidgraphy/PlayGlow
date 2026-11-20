@@ -1831,6 +1831,22 @@ body::before {
 .ww-ctrl.tb-danger { background: #E63946; border-color: #E63946; color: #fff; }
 .ww-ctrl.tb-danger:disabled { opacity: .5; cursor: default; }
 
+/* Tasbeeh: welcome-back prompt + saved unfinished tasks */
+.tb-wb-sub { font-size: 14px; color: var(--muted); margin: -8px 0 14px; }
+.tb-wb-list { display: flex; flex-direction: column; gap: 8px; }
+.tb-wb-item {
+  width: 100%; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--line);
+  background: #fff; color: var(--ink); font-size: 15px; font-weight: 800; font-family: inherit; cursor: pointer;
+}
+.tb-wb-item.primary { background: var(--brand, #6b3fd4); border-color: var(--brand, #6b3fd4); color: #fff; }
+.tb-saved { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.tb-saved-label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.tb-saved-chip { display: inline-flex; align-items: center; border: 2px dashed var(--brand, #6b3fd4); border-radius: 999px; background: #f4f0ff; overflow: hidden; }
+.tb-saved-go, .tb-saved-x { border: none; background: none; font-family: inherit; cursor: pointer; color: var(--brand, #6b3fd4); font-weight: 800; }
+.tb-saved-go { padding: 6px 4px 6px 12px; font-size: 14px; }
+.tb-saved-x { padding: 6px 12px 6px 8px; font-size: 13px; opacity: .7; }
+.tb-actions .ww-ctrl { min-width: 84px; padding: 11px 14px; }
+
 /* Word Wheel — connecting line for press-and-drag tracing */
 .ww-wheel { touch-action: none; }
 .ww-lines {

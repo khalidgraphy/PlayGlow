@@ -3,6 +3,9 @@
 //   • Target (33 / 99 / 100 / free): on reaching it, a round completes,
 //     it buzzes, and the count rolls back to 0.
 //   • Undo removes one; Reset clears (two-tap confirm). Count is saved.
+//   • Left midway (e.g. 356 of 1000)? On reopen a "Welcome back" prompt asks
+//     Continue or Start new. Start new keeps the unfinished count as a saved
+//     task (max 2) until it is completed or removed.
 // Custom "tool" level like Word Finder: renders itself, no score/done screen —
 // the header back arrow returns home.
 
@@ -16,10 +19,16 @@ const TARGETS = [
   { value: 0,   label: '∞' },   // 0 = free count, no auto-round
 ];
 
+const MAX_SAVED = 2;
+
 function load() {
+  let s;
   try {
-    return { count: 0, rounds: 0, target: 33, ...(JSON.parse(localStorage.getItem(KEY) || '{}')) };
-  } catch { return { count: 0, rounds: 0, target: 33 }; }
+    s = { count: 0, rounds: 0, target: 33, ...(JSON.parse(localStorage.getItem(KEY) || '{}')) };
+  } catch { s = { count: 0, rounds: 0, target: 33 }; }
+  if (!Array.isArray(s.saved)) s.saved = [];
+  s.saved = s.saved.filter(t => t && t.count > 0).slice(0, MAX_SAVED);
+  return s;
 }
 function save(s) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
@@ -34,7 +43,7 @@ export const tasbeeh = {
   emoji: '📿',
   desc: 'Tap to count',
   ageHint: 'All ages',
-  guide: 'Tap the big button to count your tasbeeh. Pick a target (33, 99, 100) or free count (∞). It buzzes gently and starts a new round when you reach the target. Undo removes one; Reset clears the count. Your count is saved automatically.',
+  guide: 'Tap the big button to count your tasbeeh. Pick a target (33, 99, 100) or free count (∞). It buzzes gently and starts a new round when you reach the target. Undo removes one; Reset clears the count. Your count is saved automatically. Left midway? Next time you can continue, or start new and keep up to 2 unfinished counts saved.',
   custom: true,
 
   start(stage, { onExit }) {
@@ -58,6 +67,8 @@ export const tasbeeh = {
           <button class="ww-ctrl" id="tb-custom-set">Set</button>
         </div>
 
+        <div class="tb-saved" id="tb-saved"></div>
+
         <div class="tb-dial-wrap">
           <div class="tb-dial" id="tb-dial">
             <button class="tb-button" id="tb-tap" aria-label="Count one">
@@ -69,6 +80,7 @@ export const tasbeeh = {
 
         <div class="tb-actions">
           <button class="ww-ctrl" id="tb-undo">↩︎ Undo</button>
+          <button class="ww-ctrl" id="tb-new">＋ New</button>
           <button class="ww-ctrl" id="tb-reset">Reset</button>
         </div>
       </div>`;
@@ -82,10 +94,12 @@ export const tasbeeh = {
     const customChip  = stage.querySelector('#tb-custom-chip');
     const customRow   = stage.querySelector('#tb-custom-row');
     const customInput = stage.querySelector('#tb-custom-input');
+    const savedEl     = stage.querySelector('#tb-saved');
 
     tapEl.onclick = tap;
     stage.querySelector('#tb-undo').onclick = undo;
     resetEl.onclick = resetTap;
+    stage.querySelector('#tb-new').onclick = () => startNew();
     stage.querySelectorAll('.tb-chip[data-target]').forEach(b => {
       b.onclick = () => { hideCustomRow(); setTarget(parseInt(b.dataset.target, 10)); };
     });
@@ -94,6 +108,8 @@ export const tasbeeh = {
     customInput.onkeydown = (e) => { if (e.key === 'Enter') applyCustom(); };
 
     render();
+    // Reopened with unfinished work: ask before counting on.
+    if (s.count > 0 || s.saved.length) welcomeBack();
 
     function tap() {
       s.count += 1;
@@ -159,6 +175,99 @@ export const tasbeeh = {
       };
     }
 
+    // ---- Unfinished tasks (resume / start new / saved list) ----
+    function label(t) { return t.target ? `${t.count} / ${t.target}` : `${t.count} (∞)`; }
+    function snapshot() { return { count: s.count, rounds: s.rounds, target: s.target, savedAt: Date.now() }; }
+
+    function overlayCard(html) {
+      const old = stage.querySelector('#tb-confirm');
+      if (old) old.remove();
+      const overlay = document.createElement('div');
+      overlay.className = 'tb-confirm';
+      overlay.id = 'tb-confirm';
+      overlay.innerHTML = `<div class="tb-confirm-card">${html}</div>`;
+      stage.querySelector('.tb-root').appendChild(overlay);
+      return overlay;
+    }
+
+    function welcomeBack() {
+      const cur = s.count > 0;
+      const list = s.saved.map((t, i) => `
+        <button class="tb-wb-item" data-resume="${i}">▶ Continue saved ${label(t)}</button>`).join('');
+      const ov = overlayCard(`
+        <div class="tb-confirm-text">Welcome back!</div>
+        ${cur ? `<div class="tb-wb-sub">You stopped at <b>${label(s)}</b></div>` : `<div class="tb-wb-sub">You have unfinished tasbeeh saved.</div>`}
+        <div class="tb-wb-list">
+          ${cur ? `<button class="tb-wb-item primary" id="tb-wb-continue">▶ Continue ${label(s)}</button>` : ''}
+          ${list}
+          <button class="tb-wb-item" id="tb-wb-new">＋ Start new${cur ? ' (keep this saved)' : ''}</button>
+        </div>`);
+      const close = () => ov.remove();
+      const c = ov.querySelector('#tb-wb-continue');
+      if (c) c.onclick = close;
+      ov.querySelectorAll('[data-resume]').forEach(b => {
+        b.onclick = () => { close(); resumeSaved(parseInt(b.dataset.resume, 10)); };
+      });
+      ov.querySelector('#tb-wb-new').onclick = () => { close(); startNew(); };
+    }
+
+    // Park the current count as a saved task and start from 0.
+    function startNew() {
+      if (s.count === 0) { s.rounds = 0; save(s); render(); return; }
+      if (s.saved.length >= MAX_SAVED) { fullDialog(); return; }
+      s.saved.push(snapshot());
+      s.count = 0; s.rounds = 0;
+      buzz(15);
+      save(s); render();
+    }
+
+    function fullDialog() {
+      const ov = overlayCard(`
+        <div class="tb-confirm-text">2 tasks already saved</div>
+        <div class="tb-wb-sub">Finish or remove one to save <b>${label(s)}</b>.</div>
+        <div class="tb-confirm-btns"><button class="ww-ctrl" id="tb-full-ok">OK</button></div>`);
+      ov.querySelector('#tb-full-ok').onclick = () => ov.remove();
+    }
+
+    // Switch to a saved task; the current one (if any) takes its slot.
+    function resumeSaved(i) {
+      const t = s.saved[i];
+      if (!t) return;
+      if (s.count > 0) s.saved[i] = snapshot();
+      else s.saved.splice(i, 1);
+      s.count = t.count; s.rounds = t.rounds || 0; s.target = t.target;
+      buzz(15);
+      save(s); render();
+    }
+
+    function removeSaved(i) {
+      const t = s.saved[i];
+      if (!t) return;
+      const ov = overlayCard(`
+        <div class="tb-confirm-text">Remove saved ${label(t)}?</div>
+        <div class="tb-confirm-btns">
+          <button class="ww-ctrl" id="tb-rm-cancel">Cancel</button>
+          <button class="ww-ctrl tb-danger" id="tb-rm-yes" disabled>Remove</button>
+        </div>`);
+      const yes = ov.querySelector('#tb-rm-yes');
+      ov.querySelector('#tb-rm-cancel').onclick = () => ov.remove();
+      ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
+      setTimeout(() => { yes.disabled = false; }, 350);
+      yes.onclick = () => { ov.remove(); s.saved.splice(i, 1); save(s); render(); };
+    }
+
+    function renderSaved() {
+      if (!s.saved.length) { savedEl.style.display = 'none'; savedEl.innerHTML = ''; return; }
+      savedEl.style.display = '';
+      savedEl.innerHTML = `<span class="tb-saved-label">Saved:</span>` + s.saved.map((t, i) => `
+        <span class="tb-saved-chip">
+          <button class="tb-saved-go" data-go="${i}">▶ ${label(t)}</button>
+          <button class="tb-saved-x" data-x="${i}" aria-label="Remove saved task">✕</button>
+        </span>`).join('');
+      savedEl.querySelectorAll('[data-go]').forEach(b => { b.onclick = () => resumeSaved(parseInt(b.dataset.go, 10)); });
+      savedEl.querySelectorAll('[data-x]').forEach(b => { b.onclick = () => removeSaved(parseInt(b.dataset.x, 10)); });
+    }
+
     // ---- Custom target (1–100000) ----
     function toggleCustomRow() {
       const open = customRow.style.display !== 'none';
@@ -186,6 +295,7 @@ export const tasbeeh = {
       customChip.textContent = custom ? `✏️ ${s.target}` : '✏️ Custom';
       const pct = s.target ? Math.min(100, Math.round((s.count / s.target) * 100)) : 0;
       dialEl.style.background = `conic-gradient(var(--brand, #6b3fd4) ${pct}%, #e9e4fa ${pct}%)`;
+      renderSaved();
     }
   }
 };
