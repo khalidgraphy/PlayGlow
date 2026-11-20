@@ -1958,3 +1958,123 @@ body::before {
 .sl-dice:active { transform: translateY(2px); box-shadow: none; }
 .sl-dice:disabled { opacity: .55; cursor: default; box-shadow: none; }
 @keyframes sl-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+
+/* ================= Daily Mix + Today's Surprise + Sticker Book ================= */
+#done-summary { white-space: pre-line; }
+
+.today-strip { display: flex; flex-direction: column; gap: 10px; }
+.today-cards { display: grid; grid-template-columns: 1fr 1fr !important; gap: 10px; }
+.today-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding: 12px 12px 10px; border-radius: var(--radius-sm);
+  border: 2px solid transparent; cursor: pointer; text-align: left;
+  font-family: inherit; color: var(--ink); min-width: 0;
+  box-shadow: var(--shadow-btn);
+  transition: transform 0.18s ease;
+}
+.today-card:active { transform: translateY(2px) scale(0.98); }
+.today-card.mix { background: linear-gradient(135deg, #EDE8FF, #D9D1FF); border-color: #CFC4FF; }
+.today-card.surprise { background: linear-gradient(135deg, #FFF0D6, #FFD9A8); border-color: #FFCB85; }
+.today-card.done { opacity: 0.75; box-shadow: none; }
+.today-emoji { font-size: 28px; line-height: 1.1; }
+.today-name { font-size: 15px; font-weight: 700; }
+.today-sub {
+  font-size: 12px; color: var(--ink-soft); font-weight: 600;
+  max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.today-badge {
+  margin-top: 6px; font-size: 11px; font-weight: 700;
+  background: rgba(255,255,255,0.75); padding: 3px 8px; border-radius: 999px;
+}
+.today-card.surprise:not(.done) .today-emoji { animation: gift-wiggle 2.4s ease-in-out infinite; }
+@keyframes gift-wiggle {
+  0%, 80%, 100% { transform: rotate(0); }
+  85% { transform: rotate(-12deg); } 90% { transform: rotate(10deg); } 95% { transform: rotate(-6deg); }
+}
+
+.sticker-bar {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--surface); border: 2px solid var(--line);
+  font-family: inherit; color: var(--ink); cursor: pointer;
+}
+.sticker-bar:active { transform: scale(0.99); }
+.sticker-bar-emoji { font-size: 24px; }
+.sticker-bar-main { flex: 1; display: flex; flex-direction: column; gap: 5px; text-align: left; min-width: 0; }
+.sticker-bar-title { font-size: 14px; font-weight: 700; }
+.sticker-bar-track, .sb-progress { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.sticker-bar-fill, .sb-progress-fill {
+  display: block; height: 100%; min-width: 4px;
+  background: linear-gradient(90deg, var(--gold), var(--accent)); border-radius: 999px;
+}
+.sticker-bar-count { font-size: 13px; font-weight: 700; color: var(--primary); }
+
+/* Sticker Book screen */
+.sb-tip { font-size: 12px; color: var(--ink-soft); text-align: center; margin-top: -6px; }
+.sb-body { display: flex; flex-direction: column; gap: 18px; }
+.sb-heading {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 15px; font-weight: 700; margin-bottom: 8px;
+}
+.sb-count { font-size: 12px; color: var(--ink-soft); background: var(--bg); padding: 3px 9px; border-radius: 999px; }
+.sb-count.full { color: var(--good); }
+.sb-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr !important; gap: 8px; }
+.sb-slot {
+  position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit; padding: 0; min-width: 0;
+}
+.sb-slot.got {
+  border: 3px solid #fff; cursor: pointer; background: var(--bg);
+  box-shadow: 0 2px 0 rgba(45,42,74,0.12), 0 4px 10px rgba(45,42,74,0.12);
+  transform: rotate(-1.5deg);
+}
+.sb-slot.got:nth-child(even) { transform: rotate(1.5deg); }
+.sb-slot.got .visual-img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.sb-slot.got .visual-emoji { font-size: 34px; }
+.sb-name {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  font-size: 10px; font-weight: 700; color: #fff; text-align: center;
+  padding: 10px 2px 3px; background: linear-gradient(transparent, rgba(0,0,0,0.55));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sb-slot.locked { background: var(--bg); border: 2px dashed var(--line); }
+.sb-q { font-size: 22px; font-weight: 700; color: var(--muted); }
+
+/* Reward popup + "New sticker!" pop */
+.reward-card { align-items: center; text-align: center; }
+.reward-visual {
+  width: 150px; height: 150px; border-radius: 22px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg); font-size: 72px;
+  border: 4px solid #fff; box-shadow: 0 6px 18px rgba(45,42,74,0.2);
+  animation: pop 0.4s ease;
+}
+.reward-visual .visual-img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+#reward-names { width: 100%; }
+
+.sticker-pop {
+  position: fixed; left: 50%; top: 22px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface); color: var(--ink);
+  padding: 8px 16px 8px 8px; border-radius: 18px; z-index: 110;
+  border: 2px solid var(--gold);
+  box-shadow: 0 10px 28px rgba(45,42,74,0.3);
+  animation: sticker-pop 2.2s ease forwards; font-family: inherit;
+}
+.sticker-pop-img {
+  width: 52px; height: 52px; border-radius: 12px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; font-size: 32px; background: var(--bg);
+}
+.sticker-pop-img .visual-img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; }
+.sticker-pop-text { display: flex; flex-direction: column; font-size: 13px; }
+.sticker-pop-text b { color: var(--accent-dark); }
+.sticker-pop-text span { font-size: 16px; font-weight: 700; }
+@keyframes sticker-pop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.8); }
+  12% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.06); }
+  20% { transform: translateX(-50%) scale(1); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+.sb-progress { flex-shrink: 0; width: 100%; }

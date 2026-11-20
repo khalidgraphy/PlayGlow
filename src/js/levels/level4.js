@@ -8,6 +8,7 @@
 import { Audio } from '../audio.js';
 import { ALPHABETS, shuffle } from '../alphabets.js';
 import { escape, visualFor } from '../engine.js';
+import { drawFromDeck } from '../progress.js';
 
 const WORDS = [
   // 30 three-letter
@@ -27,8 +28,10 @@ const WORDS = [
   { w: 'nose', e: '👃' }, { w: 'boat', e: '⛵' }, { w: 'baby', e: '👶' }, { w: 'hand', e: '✋' }
 ];
 
+// No-repeat deck: every word comes up once before any word repeats.
 function pickWord() {
-  return WORDS[Math.floor(Math.random() * WORDS.length)];
+  const w = drawFromDeck('spell', WORDS.map(x => x.w));
+  return WORDS.find(x => x.w === w) || WORDS[0];
 }
 
 export const level4 = {
@@ -39,6 +42,7 @@ export const level4 = {
   ageHint: 'Age 5+',
   guide: 'Child sees a picture, hears the word, then taps the jumbled letters in the right order to spell it. Tap any filled box to undo.',
   altCount: 0,
+  ownWords: true,
   roundsPerSession: 6,
   scoring: { right: 2, wrong: -1 },
 
@@ -87,7 +91,7 @@ export const level4 = {
           answered = true;
           slots.forEach(s => { s.classList.add('filled'); s.style.borderColor = '#4CAF50'; s.style.background = '#E8F8EF'; });
           Audio.speak(word, 'en');
-          onAnswer(true);
+          onAnswer(true, { word: pick.w });
         }
         // If wrong but full: do NOT auto-reset. Let kid backspace from slots.
       }

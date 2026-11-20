@@ -4,6 +4,10 @@
 // To regenerate: bash + python3 scripts/fetch_images.py, then run:
 //   python3 -c "import os;[print(repr(f.replace('.jpg','')),end=', ')for f in sorted(os.listdir('public/words'))if f.endswith('.jpg')]"
 
+// Photos that did not match their word (Wikipedia picked a diagram, a map or a
+// different animal) are left out on purpose so the emoji shows instead:
+// water, head, tooth, mouth, eye, hair, leg, star, cloud, sea, kiwi.
+// The .jpg files are still in public/words; re-add a slug once its photo is replaced.
 export const WORDS_WITH_IMAGES = new Set([
   'airplane',
   'ambulance',
@@ -34,7 +38,6 @@ export const WORDS_WITH_IMAGES = new Set([
   'cherry',
   'chocolate',
   'clock',
-  'cloud',
   'coconut',
   'corn',
   'cow',
@@ -49,7 +52,6 @@ export const WORDS_WITH_IMAGES = new Set([
   'eggplant',
   'elbow',
   'elephant',
-  'eye',
   'falafel',
   'fan',
   'ferry',
@@ -68,9 +70,7 @@ export const WORDS_WITH_IMAGES = new Set([
   'grapes',
   'grass',
   'guava',
-  'hair',
   'hand',
-  'head',
   'heart',
   'helicopter',
   'horse',
@@ -79,10 +79,8 @@ export const WORDS_WITH_IMAGES = new Set([
   'kebab',
   'kettle',
   'key',
-  'kiwi',
   'knee',
   'leaf',
-  'leg',
   'lemon',
   'lettuce',
   'lion',
@@ -95,7 +93,6 @@ export const WORDS_WITH_IMAGES = new Set([
   'moon',
   'motorcycle',
   'mountain',
-  'mouth',
   'mushroom',
   'naan',
   'nose',
@@ -127,7 +124,6 @@ export const WORDS_WITH_IMAGES = new Set([
   'rock',
   'samosa',
   'sand',
-  'sea',
   'sheep',
   'ship',
   'sky',
@@ -136,7 +132,6 @@ export const WORDS_WITH_IMAGES = new Set([
   'sofa',
   'spinach',
   'spoon',
-  'star',
   'strawberry',
   'sun',
   'table',
@@ -145,14 +140,12 @@ export const WORDS_WITH_IMAGES = new Set([
   'toe',
   'tomato',
   'tongue',
-  'tooth',
   'towel',
   'tractor',
   'train',
   'tree',
   'truck',
   'van',
-  'water',
   'watermelon',
   'window',
   'yogurt',

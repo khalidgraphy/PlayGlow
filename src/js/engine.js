@@ -3,9 +3,9 @@
 //   render(stage, { round, lang, onAnswer }) }
 // Engine handles: fetching rounds, scoring, screen transitions, end-of-session summary.
 
-import { API } from './api.js';
 import { Audio } from './audio.js';
 import { Storage } from './storage.js';
+import { buildRound, Stickers } from './progress.js';
 
 const stage      = () => document.getElementById('stage');
 const titleEl    = () => document.getElementById('game-title');
@@ -16,8 +16,10 @@ const scorePill  = () => scoreEl().closest('.score-pill');
 let active = null;
 
 export async function runLevel(level, { onExit }) {
+  if (level.onStart) level.onStart();   // e.g. Daily Mix resets its part counter
   active = {
     level,
+    round: null,
     lang: Storage.getLanguage(),
     rounds: 0,
     score: 0,
@@ -26,7 +28,7 @@ export async function runLevel(level, { onExit }) {
     onExit
   };
 
-  titleEl().textContent = `Activity ${level.id}: ${level.name}`;
+  titleEl().textContent = level.title || `Activity ${level.id}: ${level.name}`;
   subEl().textContent = level.desc;
   updateScoreUI(0);
   showScreen('game-screen');
@@ -40,15 +42,12 @@ async function nextRound() {
     return finish();
   }
 
-  stage().innerHTML = '<div class="muted" style="text-align:center;padding:30px">Loading…</div>';
-  let round;
-  try {
-    round = await API.getRound(active.level.altCount ?? 5);
-  } catch (err) {
-    stage().innerHTML = `<div class="muted" style="text-align:center;padding:30px">Couldn't load. <button class="button" id="retry">Retry</button></div>`;
-    document.getElementById('retry').onclick = () => nextRound();
-    return;
-  }
+  // Rounds now come from the local no-repeat word deck (progress.js), not the
+  // old /api/round random pick: no network wait, and no repeats until the kid
+  // has seen every photo word. Levels with their own word list (ownWords)
+  // skip this so they don't burn cards from the shared deck.
+  const round = active.level.ownWords ? null : buildRound(active.level.altCount ?? 5);
+  active.round = round;
 
   active.level.render(stage(), {
     round,
@@ -66,6 +65,9 @@ function handleAnswer(correct, opts = {}) {
     active.streakRight += 1; active.streakWrong = 0;
     Audio.correct();
     Storage.addStars(1);
+    // Sticker Book: the word just answered (levels with their own list pass it).
+    const fresh = Stickers.collect(opts.word ?? active.round?.target?.en);
+    if (fresh) setTimeout(() => stickerPop(fresh), 650);
   } else {
     active.streakWrong += 1; active.streakRight = 0;
     Audio.wrong();
@@ -86,7 +88,6 @@ function finish() {
   const lvl = active.level;
   const finalScore = active.score;
   const summary = Storage.setLevelScore(lvl.id, finalScore);
-  const lifetime = Storage.getStars();
 
   // Stars 1-3 based on hit rate this session
   const ratio = Math.max(0, Math.min(1, finalScore / (lvl.roundsPerSession * lvl.scoring.right)));
@@ -95,8 +96,10 @@ function finish() {
   document.getElementById('done-title').textContent =
     finalScore > 0 ? 'Great Job!' : finalScore === 0 ? 'Keep Trying!' : 'Try Again';
   document.getElementById('done-stars').textContent = '⭐'.repeat(Math.max(0, stars)) || '✨';
+  // Optional hook (Daily Mix) for an extra line such as a bonus sticker.
+  const extra = lvl.onFinish ? lvl.onFinish(finalScore) : '';
   document.getElementById('done-summary').textContent =
-    `Score ${finalScore}  •  Best ${summary.high}  •  Lifetime stars ${lifetime}`;
+    `Score ${finalScore}  •  Best ${summary.high}  •  Lifetime stars ${Storage.getStars()}` + (extra ? `\n${extra}` : '');
 
   Audio.win();
   showScreen('done-screen');
@@ -153,6 +156,27 @@ export function toast(msg, kind = '') {
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1500);
+}
+
+// "New sticker!" pop: photo + name, shown above the score toast.
+// Pops queue one after another so two stickers never stack on screen.
+let popFreeAt = 0;
+const POP_MS = 2200;
+export function stickerPop(w) {
+  if (!w) return;
+  const now = Date.now();
+  const wait = Math.max(0, popFreeAt - now);
+  popFreeAt = now + wait + POP_MS;
+  if (wait) { setTimeout(() => showStickerPop(w), wait); return; }
+  showStickerPop(w);
+}
+function showStickerPop(w) {
+  const el = document.createElement('div');
+  el.className = 'sticker-pop';
+  el.innerHTML = `<div class="sticker-pop-img">${visualFor(w)}</div>` +
+    `<div class="sticker-pop-text"><b>New sticker!</b><span>${escape(w.en[0].toUpperCase() + w.en.slice(1))}</span></div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), POP_MS);
 }
 
 // Generic helper: render the "names with speakers" block.

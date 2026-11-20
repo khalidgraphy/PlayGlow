@@ -7,12 +7,17 @@ import { Audio } from '../audio.js';
 import { ALPHABETS, shuffle } from '../alphabets.js';
 import { escape, visualFor } from '../engine.js';
 import { pickWordsByLength } from './dailywords.js';
+import { drawFromDeck } from '../progress.js';
 
 // Pre-filter once: 3-5 letter words, only A-Z (drop hyphens, spaces, accents)
 const POOL = pickWordsByLength(3, 5).filter(w => /^[A-Za-z]+$/.test(w.en));
 
+// No-repeat deck over the pool (some English words appear twice in the
+// library, so the deck works on unique spellings).
+const POOL_KEYS = [...new Set(POOL.map(w => w.en))];
 function pickWord() {
-  return POOL[Math.floor(Math.random() * POOL.length)];
+  const en = drawFromDeck('missing', POOL_KEYS);
+  return POOL.find(w => w.en === en) || POOL[0];
 }
 
 export const missingLetter = {
@@ -23,6 +28,7 @@ export const missingLetter = {
   ageHint: 'Age 5+',
   guide: 'Child sees a picture and a word with one letter missing. Tap the right letter from the four choices to complete the word.',
   altCount: 0,
+  ownWords: true,
   roundsPerSession: 6,
   scoring: { right: 1, wrong: -1 },
 
@@ -86,7 +92,7 @@ export const missingLetter = {
           slot.style.borderColor = '#4CAF50';
           stage.querySelectorAll('.option-tile').forEach(b => b.classList.add('disabled'));
           Audio.speak(word, 'en');
-          onAnswer(true);
+          onAnswer(true, { word: pick.en });
         } else {
           btn.classList.add('wrong', 'disabled');
           wrongs += 1;

@@ -212,8 +212,24 @@
         <div class="stars-pill">⭐ <span id="lifetime-stars">0</span></div>
       </header>
       <h2 class="home-title" id="home-greeting">Pick an Activity</h2>
+      <!-- Daily Mix + Today's Surprise + Sticker Book entry (rendered by app.js) -->
+      <div id="today-strip" class="today-strip"></div>
       <div id="home-tabs" class="home-tabs"></div>
       <div id="level-grid" class="level-grid"></div>
+    </section>
+
+    <!-- Sticker Book: one sticker per photo word the kid has got right -->
+    <section id="stickers-screen" class="screen hidden">
+      <header class="game-header">
+        <button id="stickers-back" class="icon-btn" aria-label="Back">←</button>
+        <div class="game-title-wrap">
+          <div class="game-title">Sticker Book</div>
+          <div class="game-subtitle" id="stickers-count"></div>
+        </div>
+      </header>
+      <div class="sb-progress"><div class="sb-progress-fill" id="stickers-bar"></div></div>
+      <p class="sb-tip">Get a word right in any word game to win its sticker!</p>
+      <div id="stickers-body" class="sb-body"></div>
     </section>
 
     <!-- Generic game shell — each level renders into #stage -->
@@ -272,6 +288,17 @@
       <div class="info-title" id="info-title">How to play</div>
       <div class="info-text" id="info-text"></div>
       <button class="button" id="info-close">Got it</button>
+    </div>
+  </div>
+
+  <!-- Reward / sticker popup (surprise bonus, tapping a sticker) -->
+  <div id="reward-overlay" class="info-overlay hidden" aria-hidden="true">
+    <div class="info-card reward-card" role="dialog" aria-modal="true">
+      <div class="info-title" id="reward-title"></div>
+      <div class="reward-visual" id="reward-visual"></div>
+      <div id="reward-names"></div>
+      <div class="info-text" id="reward-text"></div>
+      <button class="button" id="reward-close">Yay!</button>
     </div>
   </div>
 

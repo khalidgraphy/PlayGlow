@@ -1,7 +1,9 @@
 import { Storage } from './storage.js';
 import { Audio } from './audio.js';
 import { API } from './api.js';
-import { runLevel, runCustomLevel, showScreen } from './engine.js';
+import { runLevel, runCustomLevel, showScreen, stickerPop, visualFor, renderNames, bindSpeakers, escape } from './engine.js';
+import { Stickers, Daily, daySeed } from './progress.js';
+import { STICKER_CATEGORIES, STICKER_WORDS } from './stickerWords.js';
 import { ticTacToe }              from './games/tictactoe.js';      // id 2 (NEW)
 import { wordFinder }             from './levels/wordfinder.js';    // id 3
 import { level1 as hearTap }      from './levels/level1.js';        // id 4
@@ -32,8 +34,119 @@ const LEVEL1_PARENT = {
 // Display order on home — matches numeric id sequence (1..10)
 // (Daily Word removed; Color Trap moved from id 2 → id 10; Tic Tac Toe new at id 2)
 const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders];
+// ---------------- Daily Mix + Today's Surprise ----------------
+// Both are picked from a seed of (date + profile), so they stay the same all
+// day and change every morning. Picks respect the kid's age (activity age
+// hint at most 1 year above the profile age).
+function profileAge() {
+  const a = Storage.getActiveProfile()?.age;
+  return a === '10+' ? 10 : (parseInt(a, 10) || 6);
+}
+function minAge(lvl) {
+  const m = /(\d+)/.exec(lvl.ageHint || '');
+  return m ? parseInt(m[1], 10) : 4;
+}
+function seededShuffle(arr, seed) {
+  let t = seed >>> 0;
+  const rand = () => {            // mulberry32
+    t = (t + 0x6D2B79F5) >>> 0;
+    let r = Math.imul(t ^ (t >>> 15), 1 | t);
+    r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+    return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+  };
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+const DAILY_BONUS_STARS = 5;
+const MIX_POOL = [hearTap, threeNames, spellIt, firstLetter, matchTrans, missingLetter];
+const MIX_PARTS = 3;
+const MIX_ROUNDS_PER_PART = 3;
+
+function pickMixParts() {
+  const age = profileAge();
+  let ok = MIX_POOL.filter(l => minAge(l) <= age + 1);
+  if (ok.length < MIX_PARTS) {
+    // Very young kids: top up with the easiest remaining activities.
+    const rest = MIX_POOL.filter(l => !ok.includes(l)).sort((a, b) => minAge(a) - minAge(b));
+    ok = [...ok, ...rest].slice(0, MIX_PARTS);
+  }
+  return seededShuffle(ok, daySeed('mix')).slice(0, MIX_PARTS);
+}
+
+// Engine level that plays 3 quick rounds each of 3 different word activities.
+// No minus points (kid-friendly). Engine reads altCount/ownWords per round,
+// so both follow whichever part is currently playing.
+const dailyMix = {
+  id: 90,
+  name: 'Daily Mix',
+  title: 'Daily Mix',
+  emoji: '🎲',
+  desc: '3 quick games, new every day',
+  ageHint: 'Age 4+',
+  guide: 'Three quick games in a row, 3 turns each. A new mix every day. Finish it for bonus stars and a surprise sticker.',
+  roundsPerSession: MIX_PARTS * MIX_ROUNDS_PER_PART,
+  scoring: { right: 1, wrong: 0 },
+  _parts: [],
+  _i: 0,
+  part() { return this._parts[Math.min(this._parts.length - 1, Math.floor(this._i / MIX_ROUNDS_PER_PART))]; },
+  get altCount() { return this.part()?.altCount ?? 5; },
+  get ownWords() { return !!this.part()?.ownWords; },
+  onStart() {
+    this._parts = pickMixParts();
+    this._i = 0;
+    firstLetter._rotation = 0;
+  },
+  render(stage, ctx) {
+    const part = this.part();
+    const n = Math.floor(this._i / MIX_ROUNDS_PER_PART) + 1;
+    const sub = document.getElementById('game-subtitle');
+    if (sub) sub.textContent = `Game ${n} of ${MIX_PARTS}: ${part.name}`;
+    this._i += 1;
+    part.render.call(part, stage, ctx);
+  },
+  onFinish() {
+    const d = Daily.get();
+    if (d.mixDone) return "You finished today's Daily Mix. A new one comes tomorrow!";
+    Daily.set({ mixDone: true });
+    Storage.addStars(DAILY_BONUS_STARS);
+    const w = Stickers.randomMissing();
+    if (w) {
+      Stickers.collect(w.en);
+      setTimeout(() => stickerPop(w), 600);
+      return `Daily Mix done! +${DAILY_BONUS_STARS} ⭐ and a bonus sticker: ${cap(w.en)}`;
+    }
+    return `Daily Mix done! +${DAILY_BONUS_STARS} ⭐`;
+  }
+};
+
+function cap(s) { return s ? s[0].toUpperCase() + s.slice(1) : ''; }
+
+// Today's Surprise: one featured activity (games + learning, no tools).
+// ABC Crush resolves to one of its letter packs. Never the same as yesterday.
+function todaysSurprise() {
+  const d = Daily.get();
+  let id = d.surpriseId;
+  if (!ALL_LEVELS.some(l => l.id === id)) {
+    const age = profileAge();
+    const flat = HOME_LEVELS
+      .filter(l => categoryOf(l) !== 'tools')
+      .flatMap(l => l.parent ? [seededShuffle(CRUSH_SUBS, daySeed('crush'))[0]] : [l])
+      .filter(l => minAge(l) <= age + 1);
+    const order = seededShuffle(flat, daySeed('surprise'));
+    const pick = order.find(l => l.id !== d.prevSurpriseId) || order[0];
+    id = pick?.id;
+    if (id != null) Daily.set({ surpriseId: id });
+  }
+  return ALL_LEVELS.find(l => l.id === id) || null;
+}
+
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders];
+const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, dailyMix];
 
 // Home categories (tabbed). Each activity maps to exactly one bucket.
 const CATEGORIES = [
@@ -295,6 +408,11 @@ function init() {
     };
   }
   document.getElementById('back-home').onclick = () => renderHome();
+  document.getElementById('stickers-back').onclick = () => renderHome();
+  document.getElementById('reward-close').onclick = hideReward;
+  document.getElementById('reward-overlay').onclick = (e) => {
+    if (e.target.id === 'reward-overlay') hideReward();
+  };
   document.getElementById('subs-back').onclick = () => renderHome();
   document.getElementById('subs-info').onclick = () =>
     showInfo('Activity 1: ABC Crush', LEVEL1_PARENT.guide);
@@ -431,9 +549,122 @@ function renderHome() {
   }
   syncProfileChip();
 
+  renderTodayStrip();
   renderHomeTabs();
   renderLevelGrid();
   showScreen('home-screen');
+  claimSurpriseIfPlayed();
+}
+
+// Home strip: Daily Mix + Today's Surprise cards, then the Sticker Book bar.
+function renderTodayStrip() {
+  const el = document.getElementById('today-strip');
+  if (!el) return;
+  const d = Daily.get();
+  const sur = todaysSurprise();
+  const have = Stickers.count(), total = Stickers.total();
+  const pct = Math.round((have / total) * 100);
+  el.innerHTML = `
+    <div class="today-cards">
+      <button class="today-card mix${d.mixDone ? ' done' : ''}" id="today-mix" type="button">
+        <span class="today-emoji">🎲</span>
+        <span class="today-name">Daily Mix</span>
+        <span class="today-sub">3 quick games</span>
+        <span class="today-badge">${d.mixDone ? 'Done today ✓' : `+${DAILY_BONUS_STARS} ⭐ + sticker`}</span>
+      </button>
+      <button class="today-card surprise${d.surpriseClaimed ? ' done' : ''}" id="today-surprise" type="button"${sur ? '' : ' hidden'}>
+        <span class="today-emoji">${sur ? (sur.emoji || '🎁') : '🎁'}</span>
+        <span class="today-name">Today's Surprise</span>
+        <span class="today-sub">${sur ? escape(sur.name) : ''}</span>
+        <span class="today-badge">${d.surpriseClaimed ? 'Got it ✓' : `🎁 Play for a gift`}</span>
+      </button>
+    </div>
+    <button class="sticker-bar" id="open-stickers" type="button">
+      <span class="sticker-bar-emoji">📒</span>
+      <span class="sticker-bar-main">
+        <span class="sticker-bar-title">Sticker Book</span>
+        <span class="sticker-bar-track"><span class="sticker-bar-fill" style="width:${pct}%"></span></span>
+      </span>
+      <span class="sticker-bar-count">${have}/${total}</span>
+    </button>
+  `;
+  document.getElementById('today-mix').onclick = () => start(dailyMix.id);
+  const sBtn = document.getElementById('today-surprise');
+  if (sur) sBtn.onclick = () => start(sur.id);
+  document.getElementById('open-stickers').onclick = () => openStickers();
+}
+
+// After the kid has played today's surprise and comes back home: one gift a day.
+function claimSurpriseIfPlayed() {
+  const d = Daily.get();
+  if (!d.surprisePlayed || d.surpriseClaimed) return;
+  Daily.set({ surpriseClaimed: true });
+  Storage.addStars(DAILY_BONUS_STARS);
+  document.getElementById('lifetime-stars').textContent = Storage.getStars();
+  const w = Stickers.randomMissing();
+  if (w) Stickers.collect(w.en);
+  renderTodayStrip();
+  Audio.win();
+  showReward({
+    title: '🎁 Surprise gift!',
+    word: w,
+    text: w
+      ? `You played today's surprise! +${DAILY_BONUS_STARS} ⭐ and a new sticker for your book.`
+      : `You played today's surprise! +${DAILY_BONUS_STARS} ⭐`
+  });
+}
+
+function showReward({ title, word, text, button = 'Yay!' }) {
+  document.getElementById('reward-title').textContent = title;
+  const vis = document.getElementById('reward-visual');
+  vis.innerHTML = word ? visualFor(word) : '<span class="visual-emoji">⭐</span>';
+  const names = document.getElementById('reward-names');
+  names.innerHTML = word ? renderNames({ target: word }) : '';
+  if (word) bindSpeakers(names);
+  document.getElementById('reward-text').textContent = text || '';
+  document.getElementById('reward-close').textContent = button;
+  const overlay = document.getElementById('reward-overlay');
+  overlay.classList.remove('hidden');
+  overlay.setAttribute('aria-hidden', 'false');
+}
+function hideReward() {
+  const overlay = document.getElementById('reward-overlay');
+  overlay.classList.add('hidden');
+  overlay.setAttribute('aria-hidden', 'true');
+}
+
+// Sticker Book screen: sections per category, collected = photo, missing = "?".
+function openStickers() {
+  const have = Stickers.all();
+  const count = Stickers.count(), total = Stickers.total();
+  document.getElementById('stickers-count').textContent = `${count} of ${total} collected`;
+  document.getElementById('stickers-bar').style.width = `${Math.round((count / total) * 100)}%`;
+  const body = document.getElementById('stickers-body');
+  body.innerHTML = STICKER_CATEGORIES.map(c => {
+    const words = STICKER_WORDS.filter(w => w.cat === c.key);
+    const got = words.filter(w => have[w.slug]).length;
+    return `
+      <section class="sb-section">
+        <h3 class="sb-heading"><span>${c.emoji} ${c.label}</span><span class="sb-count${got === words.length ? ' full' : ''}">${got}/${words.length}${got === words.length ? ' 🏆' : ''}</span></h3>
+        <div class="sb-grid">
+          ${words.map(w => have[w.slug]
+            ? `<button class="sb-slot got" data-slug="${w.slug}" type="button">${visualFor(w)}<span class="sb-name">${escape(cap(w.en))}</span></button>`
+            : `<div class="sb-slot locked" aria-label="Not collected yet"><span class="sb-q">?</span></div>`
+          ).join('')}
+        </div>
+      </section>`;
+  }).join('');
+  body.querySelectorAll('.sb-slot.got').forEach(btn => {
+    btn.onclick = () => {
+      const w = STICKER_WORDS.find(x => x.slug === btn.dataset.slug);
+      if (!w) return;
+      Audio.arm();
+      Audio.speak(w.en, 'en');
+      showReward({ title: cap(w.en), word: w, text: 'Tap 🔊 to hear it again.', button: 'Close' });
+    };
+  });
+  showScreen('stickers-screen');
+  document.getElementById('stickers-screen').scrollTop = 0;
 }
 
 // Category tab bar — switches which activities the grid shows.
@@ -539,6 +770,9 @@ function start(id) {
   currentLevel = lvl;
   Audio.arm();
   Storage.setLastLevel(id);
+  // Today's Surprise: opening it counts; the gift pops when they come home.
+  const d = Daily.get();
+  if (d.surpriseId === id && !d.surprisePlayed) Daily.set({ surprisePlayed: true });
   if ('_rotation' in lvl) lvl._rotation = 0;
   if (lvl.custom) runCustomLevel(lvl, { onExit: handleExit(id) });
   else runLevel(lvl, { onExit: handleExit(id) });
@@ -547,6 +781,12 @@ function start(id) {
 function handleExit(currentId) {
   return ({ next, home }) => {
     if (home) return renderHome();
+    if (next && currentId === dailyMix.id) {
+      // After the Daily Mix, "Next" leads to today's surprise if not played yet.
+      const sur = todaysSurprise();
+      if (sur && !Daily.get().surprisePlayed) return start(sur.id);
+      return renderHome();
+    }
     if (next) {
       // For crush subs, advance to next sub if there is one; otherwise back to subs picker
       const sub = CRUSH_SUBS.find(s => s.id === currentId);
