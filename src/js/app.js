@@ -351,13 +351,29 @@ function wireProfileSetup() {
   let pickedGender = '';   // default = skip
   let pickedAvatar = '';
 
-  function refresh() {
-    const ok = nameInput.value.trim().length > 0 && pickedAge && pickedAvatar;
-    saveBtn.disabled = !ok;
-    saveBtn.style.opacity = ok ? '1' : '0.5';
+  const hintEl = document.getElementById('pf-hint');
+
+  // Button stays tappable (never `disabled`): on Android the buddy grid is often
+  // below the fold, and a silently dead button left kids stuck on this screen.
+  function missingField() {
+    if (!nameInput.value.trim()) return { el: nameInput.closest('.field'), msg: 'Type your name first' };
+    if (!pickedAge) return { el: ageRow.closest('.field'), msg: 'Tap your age' };
+    if (!pickedAvatar) return { el: avRow.closest('.field'), msg: 'Pick your buddy first' };
+    return null;
   }
 
-  nameInput.oninput = refresh;
+  function refresh() {
+    const ok = !missingField();
+    saveBtn.classList.toggle('is-incomplete', !ok);
+    saveBtn.setAttribute('aria-disabled', ok ? 'false' : 'true');
+    saveBtn.style.opacity = ok ? '1' : '0.5';
+    if (ok && hintEl) hintEl.textContent = '';
+  }
+
+  // Some Android keyboards (Gboard/Samsung mid-composition) don't fire `input`
+  // reliably, so listen to every event that can change the name.
+  ['input', 'change', 'keyup', 'compositionend', 'blur'].forEach(ev =>
+    nameInput.addEventListener(ev, refresh));
   ageRow.querySelectorAll('.age-chip').forEach(b => b.onclick = () => {
     pickedAge = b.dataset.age;
     ageRow.querySelectorAll('.age-chip').forEach(x => x.classList.toggle('selected', x === b));
@@ -374,7 +390,19 @@ function wireProfileSetup() {
   });
 
   saveBtn.onclick = () => {
-    if (saveBtn.disabled) return;
+    refresh();
+    const miss = missingField();
+    if (miss) {
+      if (hintEl) hintEl.textContent = miss.msg;
+      if (miss.el) {
+        miss.el.classList.remove('needs-pick');
+        void miss.el.offsetWidth; // restart the nudge animation
+        miss.el.classList.add('needs-pick');
+        miss.el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => miss.el.classList.remove('needs-pick'), 1600);
+      }
+      return;
+    }
     Audio.arm();
     Storage.saveProfile({
       name: nameInput.value.trim(),

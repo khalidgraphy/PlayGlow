@@ -67,6 +67,8 @@ body::before {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 28px);
+  /* Android Chrome: 100vh ignores the address bar, pushing the card bottom off-screen */
+  min-height: calc(100dvh - 28px);
   overflow: hidden;
   border: 1px solid var(--line);
 }
@@ -212,11 +214,26 @@ body::before {
 }
 .pf-signin-link:active { transform: scale(0.98); }
 
-.start-btn:disabled {
+.start-btn:disabled,
+.start-btn.is-incomplete {
   cursor: default;
   background: var(--line); color: var(--muted);
   box-shadow: none;
 }
+
+/* Setup: point at the field still missing when Let's Play is tapped early */
+.field.needs-pick .field-label { color: var(--accent, #ff7a59); }
+.field.needs-pick { animation: pf-nudge 0.5s ease-in-out 2; }
+@keyframes pf-nudge {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+.pf-hint {
+  font-size: 13px; font-weight: 600; text-align: center;
+  color: var(--accent, #ff7a59);
+}
+.pf-hint:empty { display: none; }
 
 /* ---------- Profile chip on home header ---------- */
 .profile-chip {
