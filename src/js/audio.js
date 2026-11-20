@@ -71,6 +71,15 @@ function speakNow(text, langCode) {
   synth.speak(buildUtterance(text, langCode));
 }
 
+// One shared Web Audio context. (Was `beep._ctx`, which threw a hidden
+// ReferenceError inside the try, so every beep was silent.)
+let _ctx = null;
+function toneCtx() {
+  if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ctx.state === 'suspended') _ctx.resume();
+  return _ctx;
+}
+
 export const Audio = {
   // MUST be called synchronously inside a user gesture handler.
   // Unlocks iOS speech engine. Harmless on macOS (volume 0, brief silent utterance).
@@ -108,7 +117,7 @@ export const Audio = {
 
   beep({ freq, duration = 0.15, type = 'sine', gain = 0.25 }) {
     try {
-      const ctx = beep._ctx ||= new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = toneCtx();
       if (ctx.state === 'suspended') ctx.resume();
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
@@ -119,6 +128,53 @@ export const Audio = {
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
       osc.start();
       osc.stop(ctx.currentTime + duration);
+    } catch {}
+  },
+
+  // A tone that glides from one pitch to another (happy rise / sad fall).
+  slide({ from, to, duration = 0.4, type = 'sine', gain = 0.2, delay = 0 }) {
+    try {
+      const ctx = toneCtx();
+      const t0 = ctx.currentTime + delay;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.connect(g); g.connect(ctx.destination);
+      osc.type = type;
+      osc.frequency.setValueAtTime(from, t0);
+      osc.frequency.exponentialRampToValueAtTime(to, t0 + duration);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(gain, t0 + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + duration);
+      osc.start(t0);
+      osc.stop(t0 + duration + 0.02);
+    } catch {}
+  },
+
+  // Real-ish dice roll: short filtered-noise "clacks" that spread out and
+  // fade, like a die tumbling on a wooden table.
+  diceRoll(totalMs = 900) {
+    try {
+      const ctx = toneCtx();
+      const len = Math.floor(ctx.sampleRate * 0.03);
+      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+      let t = ctx.currentTime + 0.01, gap = 0.045, vol = 0.55;
+      const end = ctx.currentTime + totalMs / 1000;
+      while (t < end && vol > 0.04) {
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const bp = ctx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 1800 + Math.random() * 1600;
+        bp.Q.value = 3 + Math.random() * 3;
+        const g = ctx.createGain();
+        g.gain.value = vol * (0.7 + Math.random() * 0.3);
+        src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+        src.start(t);
+        t += gap * (0.75 + Math.random() * 0.6);
+        gap *= 1.22; vol *= 0.84;
+      }
     } catch {}
   },
 
