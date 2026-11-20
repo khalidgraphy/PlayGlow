@@ -2,6 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Safety net for older / locked-down Android browsers (Vivo, Oppo, in-app
+       browsers). Plain ES5 on purpose so it runs everywhere, before the app. -->
+  <script>
+  (function () {
+    // 1) Storage blocked (private mode, WebViews without DOM storage):
+    //    keep the app working for this visit with an in-memory store.
+    var ok = false;
+    try { var t = '__pg_t'; window.localStorage.setItem(t, '1'); window.localStorage.removeItem(t); ok = true; } catch (e) {}
+    if (!ok) {
+      var mem = {};
+      var shim = {
+        getItem: function (k) { return Object.prototype.hasOwnProperty.call(mem, k) ? mem[k] : null; },
+        setItem: function (k, v) { mem[k] = String(v); },
+        removeItem: function (k) { delete mem[k]; },
+        clear: function () { mem = {}; },
+        key: function (i) { return Object.keys(mem)[i] || null; }
+      };
+      try { Object.defineProperty(window, 'localStorage', { value: shim, configurable: true }); } catch (e) {}
+    }
+    // 2) If anything breaks, say so on screen (so a parent can screenshot it).
+    var lines = [];
+    function browser() {
+      var m = navigator.userAgent.match(/(VivoBrowser|SamsungBrowser|HeyTapBrowser|MiuiBrowser|UCBrowser|OPR|Chrome|Version)\/[\d.]+/g);
+      return (m ? m.join(' ') : navigator.userAgent.slice(0, 80)) + (ok ? '' : ' | no storage');
+    }
+    function show(msg) {
+      if (!msg || /ResizeObserver/.test(msg) || lines.length >= 3) return;
+      lines.push(msg);
+      var put = function () {
+        var el = document.getElementById('pg-error');
+        if (!el) {
+          el = document.createElement('div');
+          el.id = 'pg-error';
+          el.setAttribute('style', 'position:fixed;left:8px;right:8px;bottom:8px;z-index:9999;background:#2D2A4A;color:#fff;font:12px/1.4 system-ui,sans-serif;padding:8px 10px;border-radius:10px;opacity:.92;word-break:break-word');
+          document.body.appendChild(el);
+        }
+        el.textContent = 'Oops, something went wrong. Please send us a screenshot: ' + lines.join(' | ') + ' [' + browser() + ']';
+      };
+      if (document.body) put(); else document.addEventListener('DOMContentLoaded', put);
+    }
+    window.__pgShowError = show;
+    window.addEventListener('error', function (e) {
+      if (e && e.message) show(e.message + ' @' + String(e.filename || '').split('/').pop() + ':' + e.lineno);
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      var r = e && e.reason; show('Promise: ' + (r && r.message ? r.message : String(r)));
+    });
+  })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#7C3AED" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -329,5 +378,7 @@
   </div>
 
   <script type="module" src="/js/app.js"></script>
+  <!-- Browsers too old for modules (before Chrome 61) get a clear message instead of a blank page -->
+  <script nomodule>document.addEventListener('DOMContentLoaded',function(){var d=document.createElement('div');d.setAttribute('style','padding:24px;font:16px system-ui,sans-serif;text-align:center');d.textContent='This browser is too old for PlayGlow. Please open playglow.pages.dev in Google Chrome.';document.body.insertBefore(d,document.body.firstChild);});</script>
 </body>
 </html>

@@ -6,7 +6,10 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    target: 'es2020'
+    // Old Android browsers (Vivo/Oppo/Samsung builds on Chromium 61-79) choke on
+    // ?. and ?? syntax, so compile down to what Chrome 61 / Safari 12 understand.
+    target: ['es2017', 'chrome61', 'safari12'],
+    cssTarget: ['chrome61', 'safari12']
   },
   server: {
     host: true,

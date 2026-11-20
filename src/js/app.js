@@ -135,7 +135,7 @@ function todaysSurprise() {
     const age = profileAge();
     const flat = HOME_LEVELS
       .filter(l => categoryOf(l) !== 'tools')
-      .flatMap(l => l.parent ? [seededShuffle(CRUSH_SUBS, daySeed('crush'))[0]] : [l])
+      .reduce((acc, l) => acc.concat(l.parent ? [seededShuffle(CRUSH_SUBS, daySeed('crush'))[0]] : [l]), [])  // no flatMap: Chrome 61-68
       .filter(l => minAge(l) <= age + 1);
     const order = seededShuffle(flat, daySeed('surprise'));
     const pick = order.find(l => l.id !== d.prevSurpriseId) || order[0];
@@ -521,15 +521,19 @@ function wireProfileSetup() {
       }
       return;
     }
-    Audio.arm();
-    Storage.saveProfile({
-      name: nameInput.value.trim(),
-      age: pickedAge,
-      gender: pickedGender,
-      avatar: pickedAvatar
-    });
-    if (!localStorage.getItem('wordglow:language')) Storage.setLanguage('en');
-    renderHome();
+    // Each step guarded: a failure in sound or storage must never leave the
+    // kid stuck on this screen (reported on screen by the index.html guard).
+    try { Audio.arm(); } catch (e) { reportError(e); }
+    try {
+      Storage.saveProfile({
+        name: nameInput.value.trim(),
+        age: pickedAge,
+        gender: pickedGender,
+        avatar: pickedAvatar
+      });
+      if (!localStorage.getItem('wordglow:language')) Storage.setLanguage('en');
+    } catch (e) { reportError(e); }
+    try { renderHome(); } catch (e) { reportError(e); showScreen('home-screen'); }
   };
 
   refresh();
@@ -549,11 +553,18 @@ function renderHome() {
   }
   syncProfileChip();
 
-  renderTodayStrip();
+  // New daily/sticker extras are optional: if they fail, home still shows.
+  try { renderTodayStrip(); } catch (e) { reportError(e); }
   renderHomeTabs();
   renderLevelGrid();
   showScreen('home-screen');
-  claimSurpriseIfPlayed();
+  try { claimSurpriseIfPlayed(); } catch (e) { reportError(e); }
+}
+
+// Send a caught error to the on-screen reporter (index.html) without crashing.
+function reportError(e) {
+  try { console.error(e); } catch (_) {}
+  if (window.__pgShowError) window.__pgShowError(String((e && e.message) || e));
 }
 
 // Home strip: Daily Mix + Today's Surprise cards, then the Sticker Book bar.
