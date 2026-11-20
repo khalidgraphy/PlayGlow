@@ -6,6 +6,7 @@
 //   • Left midway (e.g. 356 of 1000)? On reopen a "Welcome back" prompt asks
 //     Continue or Start new. Start new keeps the unfinished count as a saved
 //     task (max 2) until it is completed or removed.
+//   • Optional name per count (e.g. "My Tasbeeh Ramadan"), kept with saved tasks.
 // Custom "tool" level like Word Finder: renders itself, no score/done screen —
 // the header back arrow returns home.
 
@@ -33,6 +34,9 @@ function load() {
 function save(s) {
   try { localStorage.setItem(KEY, JSON.stringify(s)); } catch {}
 }
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
 function buzz(pattern) {
   try { if (navigator.vibrate) navigator.vibrate(pattern); } catch {}
 }
@@ -43,7 +47,7 @@ export const tasbeeh = {
   emoji: '📿',
   desc: 'Tap to count',
   ageHint: 'All ages',
-  guide: 'Tap the big button to count your tasbeeh. Pick a target (33, 99, 100) or free count (∞). It buzzes gently and starts a new round when you reach the target. Undo removes one; Reset clears the count. Your count is saved automatically. Left midway? Next time you can continue, or start new and keep up to 2 unfinished counts saved.',
+  guide: 'Tap the big button to count your tasbeeh. Pick a target (33, 99, 100) or free count (∞). It buzzes gently and starts a new round when you reach the target. Undo removes one; Reset clears the count. Your count is saved automatically. Tap 🏷️ to give it a name, like My Tasbeeh Ramadan. Left midway? Next time you can continue, or start new and keep up to 2 unfinished counts saved.',
   custom: true,
 
   start(stage, { onExit }) {
@@ -55,6 +59,8 @@ export const tasbeeh = {
           <div class="hud-pill"><span class="hud-label">ROUNDS</span><span class="hud-value" id="tb-rounds">0</span></div>
           <div class="hud-pill"><span class="hud-label">TARGET</span><span class="hud-value" id="tb-target">33</span></div>
         </div>
+
+        <button class="tb-name" id="tb-name" type="button"></button>
 
         <div class="tb-targets" id="tb-targets">
           ${TARGETS.map(t => `<button class="tb-chip" data-target="${t.value}">${t.label}</button>`).join('')}
@@ -95,6 +101,8 @@ export const tasbeeh = {
     const customRow   = stage.querySelector('#tb-custom-row');
     const customInput = stage.querySelector('#tb-custom-input');
     const savedEl     = stage.querySelector('#tb-saved');
+    const nameEl      = stage.querySelector('#tb-name');
+    nameEl.onclick = editName;
 
     tapEl.onclick = tap;
     stage.querySelector('#tb-undo').onclick = undo;
@@ -176,8 +184,33 @@ export const tasbeeh = {
     }
 
     // ---- Unfinished tasks (resume / start new / saved list) ----
-    function label(t) { return t.target ? `${t.count} / ${t.target}` : `${t.count} (∞)`; }
-    function snapshot() { return { count: s.count, rounds: s.rounds, target: s.target, savedAt: Date.now() }; }
+    function nums(t) { return t.target ? `${t.count} / ${t.target}` : `${t.count} (∞)`; }
+    // HTML-safe label: "My Tasbeeh Ramadan: 356 / 1000" or just "356 / 1000".
+    function label(t) { return t.name ? `${esc(t.name)}: ${nums(t)}` : nums(t); }
+    function snapshot() { return { count: s.count, rounds: s.rounds, target: s.target, name: s.name || '', savedAt: Date.now() }; }
+
+    // Optional name for the current count.
+    function editName() {
+      const ov = overlayCard(`
+        <div class="tb-confirm-text">Name this tasbeeh</div>
+        <div class="tb-wb-sub">Optional, e.g. My Tasbeeh Ramadan</div>
+        <input type="text" id="tb-name-input" class="tb-custom-input tb-name-input" maxlength="40"
+               placeholder="My Tasbeeh Ramadan" value="${esc(s.name || '')}" />
+        <div class="tb-confirm-btns">
+          ${s.name ? '<button class="ww-ctrl" id="tb-name-clear">Remove name</button>' : '<button class="ww-ctrl" id="tb-name-cancel">Cancel</button>'}
+          <button class="ww-ctrl tb-save" id="tb-name-save">Save</button>
+        </div>`);
+      const input = ov.querySelector('#tb-name-input');
+      const done = (v) => { ov.remove(); s.name = v; save(s); render(); };
+      ov.querySelector('#tb-name-save').onclick = () => done(input.value.trim().slice(0, 40));
+      input.onkeydown = (e) => { if (e.key === 'Enter') done(input.value.trim().slice(0, 40)); };
+      const clr = ov.querySelector('#tb-name-clear');
+      if (clr) clr.onclick = () => done('');
+      const cancel = ov.querySelector('#tb-name-cancel');
+      if (cancel) cancel.onclick = () => ov.remove();
+      ov.onclick = (e) => { if (e.target === ov) ov.remove(); };
+      setTimeout(() => { try { input.focus(); } catch {} }, 50);
+    }
 
     function overlayCard(html) {
       const old = stage.querySelector('#tb-confirm');
@@ -213,10 +246,10 @@ export const tasbeeh = {
 
     // Park the current count as a saved task and start from 0.
     function startNew() {
-      if (s.count === 0) { s.rounds = 0; save(s); render(); return; }
+      if (s.count === 0) { s.rounds = 0; s.name = ''; save(s); render(); return; }
       if (s.saved.length >= MAX_SAVED) { fullDialog(); return; }
       s.saved.push(snapshot());
-      s.count = 0; s.rounds = 0;
+      s.count = 0; s.rounds = 0; s.name = '';
       buzz(15);
       save(s); render();
     }
@@ -235,7 +268,7 @@ export const tasbeeh = {
       if (!t) return;
       if (s.count > 0) s.saved[i] = snapshot();
       else s.saved.splice(i, 1);
-      s.count = t.count; s.rounds = t.rounds || 0; s.target = t.target;
+      s.count = t.count; s.rounds = t.rounds || 0; s.target = t.target; s.name = t.name || '';
       buzz(15);
       save(s); render();
     }
@@ -295,6 +328,8 @@ export const tasbeeh = {
       customChip.textContent = custom ? `✏️ ${s.target}` : '✏️ Custom';
       const pct = s.target ? Math.min(100, Math.round((s.count / s.target) * 100)) : 0;
       dialEl.style.background = `conic-gradient(var(--brand, #6b3fd4) ${pct}%, #e9e4fa ${pct}%)`;
+      nameEl.innerHTML = s.name ? `🏷️ <span>${esc(s.name)}</span> ✏️` : '🏷️ Add a name (optional)';
+      nameEl.classList.toggle('named', !!s.name);
       renderSaved();
     }
   }

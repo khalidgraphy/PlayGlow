@@ -1846,6 +1846,15 @@ body::before {
 .tb-saved-go { padding: 6px 4px 6px 12px; font-size: 14px; }
 .tb-saved-x { padding: 6px 12px 6px 8px; font-size: 13px; opacity: .7; }
 .tb-actions .ww-ctrl { min-width: 84px; padding: 11px 14px; }
+.tb-name {
+  max-width: 100%; border: 2px dashed var(--line); background: #fff; color: var(--muted);
+  border-radius: 999px; padding: 6px 14px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tb-name.named { border-style: solid; border-color: var(--brand, #6b3fd4); color: var(--brand, #6b3fd4); background: #f4f0ff; }
+.tb-name-input { width: 100%; box-sizing: border-box; margin-bottom: 14px; text-align: left; }
+.ww-ctrl.tb-save { background: var(--brand, #6b3fd4); border-color: var(--brand, #6b3fd4); color: #fff; }
+.tb-saved-go { max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Word Wheel — connecting line for press-and-drag tracing */
 .ww-wheel { touch-action: none; }
