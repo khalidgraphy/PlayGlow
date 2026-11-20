@@ -89,6 +89,13 @@ export const Audio = {
     speakNow(text, LANG_CODE[lang] || 'en-US');
   },
 
+  // True when the device has a voice for this language (no Arabic fallback for Urdu).
+  hasVoice(lang) {
+    const voices = synth?.getVoices?.() || [];
+    const prefix = String(LANG_CODE[lang] || lang).split('-')[0].toLowerCase();
+    return voices.some(v => String(v.lang).toLowerCase().replace('_', '-').startsWith(prefix));
+  },
+
   speakSequence(items, gapMs = 250) {
     if (!synth || !items?.length) return;
     if (synth.speaking || synth.pending) synth.cancel();

@@ -2112,3 +2112,65 @@ body::before {
   100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
 }
 .sb-progress { flex-shrink: 0; width: 100%; }
+
+/* ===== Arabic / Urdu Alphabet (Activities 15, 16) ===== */
+.ab-root { position: relative; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.ab-top { display: flex; flex-direction: column; gap: 6px; }
+.ab-progress-row { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 14px; color: var(--ink); }
+.ab-streak { color: #E8590C; }
+.ab-bar { height: 12px; border-radius: 999px; background: #e9e4fa; overflow: hidden; flex-shrink: 0; width: 100%; }
+.ab-bar-fill { height: 100%; width: 0; background: linear-gradient(90deg, #8B5CF6, var(--brand, #6b3fd4)); border-radius: 999px; transition: width .3s ease; }
+.ab-daily { font-size: 13px; font-weight: 700; color: var(--muted); }
+.ab-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.ab-tab {
+  border: 2px solid var(--line); background: #fff; color: var(--ink); border-radius: 12px;
+  padding: 8px 4px; font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer;
+}
+.ab-tab.active { background: var(--brand, #6b3fd4); border-color: var(--brand, #6b3fd4); color: #fff; }
+.ab-body { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.ab-card {
+  background: #fff; border: 2px solid var(--line); border-radius: 20px; padding: 16px 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+}
+.ab-card.learned { border-color: #B8E8C7; }
+.ab-count { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .5px; }
+.ab-letter { font-family: 'Noto Naskh Arabic', serif; font-size: 112px; line-height: 1.35; color: var(--brand, #6b3fd4); font-weight: 700; }
+.ab-ur .ab-letter { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 92px; line-height: 1.9; }
+.ab-roman { font-size: 30px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+.ab-native { font-family: 'Noto Naskh Arabic', serif; font-size: 26px; color: var(--ink); line-height: 1.6; }
+.ab-ur .ab-native { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 22px; line-height: 2.1; }
+.ab-hint { font-size: 14px; color: var(--muted); font-weight: 600; }
+.ab-listen {
+  margin-top: 6px; border: none; border-radius: 999px; padding: 11px 22px;
+  background: #EDE7FF; color: var(--brand, #6b3fd4); font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer;
+}
+.ab-listen:active, .ab-opt:active, .ab-cell:active { transform: scale(0.96); }
+.ab-nav { display: flex; gap: 10px; justify-content: center; }
+.ab-nav .ww-ctrl { min-width: 120px; }
+.ab-nav .ww-ctrl:disabled { opacity: .4; }
+.ww-ctrl.ab-next { background: var(--brand, #6b3fd4); border-color: var(--brand, #6b3fd4); color: #fff; }
+.ab-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+.ab-cell {
+  border: 2px solid var(--line); background: #fff; border-radius: 14px; padding: 6px 2px;
+  display: flex; flex-direction: column; align-items: center; cursor: pointer; font-family: inherit; min-width: 0;
+}
+.ab-cell.learned { background: #E9F8EE; border-color: #B8E8C7; }
+.ab-cell-letter { font-family: 'Noto Naskh Arabic', serif; font-size: 30px; line-height: 1.5; color: var(--ink); }
+.ab-ur .ab-cell-letter { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 24px; line-height: 2; }
+.ab-cell-roman { font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ab-quiz { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.ab-q { font-size: 20px; font-weight: 700; color: var(--ink); }
+.ab-q b { color: var(--brand, #6b3fd4); }
+.ab-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.ab-opt {
+  border: 2px solid var(--line); background: #fff; border-radius: 18px; cursor: pointer;
+  font-family: 'Noto Naskh Arabic', serif; font-size: 52px; line-height: 1.6; color: var(--ink);
+}
+.ab-ur .ab-opt { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 42px; line-height: 2; }
+.ab-opt.right { background: #D9F5E2; border-color: #4CAF50; }
+.ab-opt.wrong { background: #FFE0E0; border-color: #FF9B9B; opacity: .6; }
+.ab-done-emoji { font-size: 54px; }
+.ab-restart {
+  align-self: center; margin-top: auto; border: none; background: none; color: var(--muted);
+  font-size: 13px; font-weight: 800; font-family: inherit; cursor: pointer; padding: 8px 12px;
+}
