@@ -2120,6 +2120,50 @@ body::before {
 @keyframes dz-toss { 0% { transform: translateY(0); } 30% { transform: translateY(-34px); } 60% { transform: translateY(0); } 75% { transform: translateY(-8px); } 88% { transform: translateY(0); } }
 @keyframes dz-shadow { 0% { transform: scale(1); opacity: 1; } 30% { transform: scale(.55); opacity: .5; } 60% { transform: scale(1); opacity: 1; } 75% { transform: scale(.85); } 100% { transform: scale(1); } }
 
+/* ===== Ludo (Activity 17), reuses .sl-* setup, cards, dice and effects ===== */
+.ld-root { gap: 8px; }
+.ld-setup { gap: 13px; }
+.ld-chips { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.ld-chips.ld-pawns { grid-template-columns: 1fr 1fr; }
+.ld-chip {
+  border: 2px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink);
+  padding: 10px 4px; font-size: 14px; font-weight: 800; font-family: inherit; cursor: pointer;
+}
+.ld-chip.on { border-color: var(--brand, #6b3fd4); background: #F3EEFF; color: var(--brand, #6b3fd4); }
+.ld-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 380px; }
+.ld-card { padding: 6px 8px 11px; }
+.ld-card .sl-card-ava { width: 30px; height: 30px; font-size: 16px; }
+.ld-card .sl-card-name { font-size: 13px; }
+.ld-card .sl-card-sq { font-size: 11px; }
+.ld-empty { visibility: hidden; }
+.ld-frame {
+  width: 100%; max-width: 380px; padding: 6px; border-radius: 16px;
+  background: linear-gradient(145deg, #7B4FE0, #5B34C2);
+  box-shadow: 0 10px 24px rgba(91,52,194,.28), inset 0 2px 0 rgba(255,255,255,.25);
+}
+.ld-wrap { position: relative; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; }
+.ld-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ld-pawn {
+  position: absolute; z-index: 4; width: 5.4%; aspect-ratio: 1 / 1; padding: 0; border: none;
+  transform: translate(-50%, -50%); border-radius: 50%; cursor: default;
+  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 45%), var(--pc);
+  box-shadow: 0 0 0 2px #fff, 0 2px 5px rgba(0,0,0,.45), inset 0 -3px 0 rgba(0,0,0,.22);
+  transition: left .2s ease, top .2s ease, width .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.ld-pawn i { position: absolute; left: 30%; top: 30%; width: 40%; height: 40%; border-radius: 50%; background: rgba(255,255,255,.85); box-shadow: inset 0 1px 2px rgba(0,0,0,.3); }
+.ld-pawn::before { content: ''; position: absolute; inset: -40%; border-radius: 50%; }  /* bigger tap area */
+.ld-pawn.sm { width: 4.2%; }
+.ld-pawn.xs { width: 3.3%; }
+.ld-pawn.done { width: 3.6%; }
+.ld-pawn.turn { z-index: 5; }
+.ld-pawn.can { z-index: 6; cursor: pointer; animation: ld-glow .8s ease-in-out infinite; }
+.ld-pawn.hop { animation: sl-hop .2s ease-out; }
+@keyframes ld-glow {
+  0%,100% { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--pc), 0 2px 5px rgba(0,0,0,.45); margin-top: 0; }
+  50% { box-shadow: 0 0 0 2px #fff, 0 0 0 7px rgba(255,212,59,.9), 0 4px 8px rgba(0,0,0,.4); margin-top: -3px; }
+}
+
 /* ================= Daily Mix + Today's Surprise + Sticker Book ================= */
 #done-summary { white-space: pre-line; }
 

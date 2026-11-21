@@ -12,9 +12,10 @@
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
 
-// Gentle, kid-friendly set (not too many, games stay short).
-const LADDERS = { 3: 22, 8: 26, 28: 47, 42: 63, 51: 70, 74: 92 };
-const SNAKES  = { 19: 5, 39: 17, 58: 40, 66: 45, 83: 61, 95: 77 };
+// Classic board layout, the same squares most real boards use
+// (incl. the famous snake on 98 and the ladder from 80 to 100).
+const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
+const SNAKES  = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
 const SNAKE_COLORS = ['#2FB344', '#F08C00', '#7048E8', '#E03131', '#1C7ED6', '#D6336C'];
 
 const COLORS = {
@@ -435,6 +436,7 @@ export const snakesLadders = {
         setTimeout(() => {
           if (cancelled) return;
           t.classList.remove('climb', 'slide');
+          if (p.pos >= 100) return finish(i);   // ladder 80 → 100 wins
           afterMove(i, roll);
         }, SLIDE_MS + 120);
       }, 300);

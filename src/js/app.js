@@ -18,6 +18,7 @@ import { tasbeeh }                from './games/tasbeeh.js';        // id 12 (NE
 import { wildCards }              from './games/wildcards.js';      // id 13 (NEW, Games)
 import { snakesLadders }          from './games/snakesladders.js';  // id 14 (NEW, Games)
 import { arabicAlphabet, urduAlphabet } from './games/alphabet.js'; // ids 15, 16 (Learning)
+import { ludo }                   from './games/ludo.js';           // id 17 (Games)
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -34,7 +35,7 @@ const LEVEL1_PARENT = {
 
 // Display order on home — matches numeric id sequence (1..10)
 // (Daily Word removed; Color Trap moved from id 2 → id 10; Tic Tac Toe new at id 2)
-const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, arabicAlphabet, urduAlphabet];
+const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, ludo, arabicAlphabet, urduAlphabet];
 // ---------------- Daily Mix + Today's Surprise ----------------
 // Both are picked from a seed of (date + profile), so they stay the same all
 // day and change every morning. Picks respect the kid's age (activity age
@@ -147,7 +148,7 @@ function todaysSurprise() {
 }
 
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, arabicAlphabet, urduAlphabet, dailyMix];
+const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, ludo, arabicAlphabet, urduAlphabet, dailyMix];
 
 // Home categories (tabbed). Each activity maps to exactly one bucket.
 const CATEGORIES = [
@@ -173,6 +174,7 @@ const LEVEL_CATEGORY = {
   14: 'games',        // Snakes & Ladders
   15: 'learning',     // Arabic Alphabet
   16: 'learning',     // Urdu Alphabet
+  17: 'games',        // Ludo
 };
 function categoryOf(lvl) { return LEVEL_CATEGORY[lvl.id] || 'learning'; }
 let activeCategory = 'learning';
