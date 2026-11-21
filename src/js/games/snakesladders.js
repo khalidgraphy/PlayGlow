@@ -13,8 +13,9 @@ import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
 
 // Classic board layout, the same squares most real boards use
-// (incl. the famous snake on 98 and the ladder from 80 to 100).
-const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
+// (incl. the famous snake on 98). Top ladder ends at 99, not 100, so it is
+// never a direct win: from 99 you still need to roll to finish.
+const LADDERS = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 99 };
 const SNAKES  = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
 const SNAKE_COLORS = ['#2FB344', '#F08C00', '#7048E8', '#E03131', '#1C7ED6', '#D6336C'];
 
