@@ -2481,3 +2481,8 @@ body::before {
 .cs-text { font-size: 15px; font-weight: 600; color: var(--ink); line-height: 1.45; }
 .cs-text.sm { font-size: 13px; color: var(--ink-soft); }
 .cs-goal { font-size: 15px; font-weight: 800; color: #1C7ED6; text-align: center; min-height: 20px; }
+.cs-trow { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.cs-ask { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20,15,40,.5); }
+.cs-ask-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 12px 34px rgba(0,0,0,.3); }
+.cs-ask-t { font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; line-height: 1.4; margin-bottom: 4px; }
+.cs-ask-box .cs-btn { width: 100%; padding: 12px; font-size: 15px; }

@@ -113,6 +113,15 @@ function toast(msg, kind) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 1600);
 }
+// English speech for lesson text: no emoji, CAPS words in normal case
+// (some voices spell out CHECK as letters), "e.g." style marks removed.
+function sayEn(text) {
+  const t = String(text || '')
+    .replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F]/gu, '')
+    .replace(/\b[A-Z]{3,}\b/g, w => w.toLowerCase())
+    .replace(/\s+/g, ' ').trim();
+  if (t) Audio.speak(t, 'en');
+}
 function moveSound(m, inCheck) {
   if (m.captured) {
     Audio.beep({ freq: 300, duration: 0.08, type: 'square', gain: 0.07 });
@@ -293,6 +302,23 @@ export const chess = {
       document.getElementById('game-screen').classList.remove('hidden');
     }
     function addStars(n) { if (n > 0) Storage.addStars(n); }
+    let fromGame = false;       // came to the menu from a running game: show "Go back"
+
+    // In-app question box (instead of the browser's confirm).
+    function ask(text, yesLabel, noLabel, onYes, onNo) {
+      const box = document.createElement('div');
+      box.className = 'cs-ask';
+      box.innerHTML = `<div class="cs-ask-box"><div class="cs-ask-t">${esc(text)}</div>
+        <button class="cs-btn pri" data-a="no">${esc(noLabel)}</button>
+        <button class="cs-btn" data-a="yes">${esc(yesLabel)}</button></div>`;
+      document.body.appendChild(box);
+      box.onclick = e => {
+        const b = e.target.closest('[data-a]');
+        if (!b && e.target !== box) return;
+        box.remove();
+        if (b && b.dataset.a === 'yes') onYes(); else if (onNo) onNo();
+      };
+    }
 
     setup();
 
@@ -322,7 +348,7 @@ export const chess = {
           ${m === 'robot' ? `<div class="sl-pick"><div class="sl-pick-label">You play</div><div class="ld-chips">${sideChips}</div></div>` : '<div class="cs-note sm">White moves first. Pass the phone after each move.</div>'}
           <button class="sl-go" id="cs-go">Start game ▶</button>`;
       }
-      const cont = saved ? `<button class="cs-continue" id="cs-continue">▶ Continue your game<small>${saved.mode === 'robot' ? 'vs Robot' : 'with Friend'}, ${LEVELS[saved.level].name}, move ${saved.moves || 1}</small></button>` : '';
+      const cont = saved ? `<button class="cs-continue" id="cs-continue">${fromGame ? '← Go back to your game' : '▶ Continue your game'}<small>${saved.mode === 'robot' ? 'vs Robot' : 'with Friend'}, ${LEVELS[saved.level].name}, move ${saved.moves || 1}</small></button>` : '';
       stage.innerHTML = `
         <div class="sl-setup cs-setup">
           <div class="sl-setup-title">♟️ Chess</div>
@@ -345,13 +371,14 @@ export const chess = {
       });
       stage.querySelector('#cs-go').onclick = () => {
         Audio.arm();
-        if (m === 'learn') return learnHub();
-        if (saved && !confirm('Start a new game? Your saved game will be replaced.')) return;
-        clearGame();
-        play(null);
+        if (m === 'learn') { fromGame = false; return learnHub(); }
+        const fresh = () => { fromGame = false; clearGame(); play(null); };
+        if (!saved) return fresh();
+        ask('You have a game in progress. Start a new game? The old one will be lost.',
+          'Start new game', '← Go back to my game', fresh, () => { fromGame = false; play(saved); });
       };
       const c = stage.querySelector('#cs-continue');
-      if (c) c.onclick = () => { Audio.arm(); play(saved); };
+      if (c) c.onclick = () => { Audio.arm(); fromGame = false; play(saved); };
     }
 
     // ===== Learn hub =====
@@ -447,7 +474,8 @@ export const chess = {
         </div>`;
       const boardEl = stage.querySelector('.cs-board');
       const goal = stage.querySelector('#cs-goal');
-      stage.querySelector('#cs-say').onclick = () => Audio.speak(P.name, 'en');
+      const say = () => Audio.speak(`${P.name}. ${P.moves}`, 'en');   // English only: name + how it moves
+      stage.querySelector('#cs-say').onclick = say;
       stage.querySelector('#cs-back').onclick = learnHub;
       stage.querySelector('#cs-reset').onclick = () => pieceLesson(i);
       const next = stage.querySelector('#cs-next');
@@ -490,7 +518,7 @@ export const chess = {
         next.classList.remove('hidden');
       }
       draw();
-      Audio.speak(P.name, 'en');
+      say();
     }
 
     // Moves of a lone white piece; targets (black pawns) can be captured and block.
@@ -548,7 +576,7 @@ export const chess = {
       let solved = false, wrongLock = false;
       stage.innerHTML = `
         <div class="cs-lesson">
-          <div class="cs-ltitle">${opts.title}</div>
+          <div class="cs-trow"><div class="cs-ltitle">${opts.title}</div><button class="cs-say" id="cs-say" aria-label="Read it out">🔊</button></div>
           ${item.text ? `<div class="cs-text">${esc(item.text)}</div>` : ''}
           <div class="cs-goal" id="cs-goal">${opts.task ? '👉 ' + esc(opts.task) : ''}</div>
           <div class="cs-host" id="cs-host"></div>
@@ -562,6 +590,9 @@ export const chess = {
       const next = stage.querySelector('#cs-next');
       stage.querySelector('#cs-back').onclick = learnHub;
       next.onclick = opts.onNext;
+      // Read out in English: title, explanation, task (and results as they happen).
+      const intro = [opts.speakTitle, item.text, opts.task].filter(Boolean).map(t => t.replace(/[.!?\s]+$/, '')).join('. ') + '.';
+      stage.querySelector('#cs-say').onclick = () => sayEn(solved ? intro + ' ' + (opts.doneText || '') : intro);
       const board = makeBoard(stage.querySelector('#cs-host'), c, {
         flip: false,
         dots: () => true,
@@ -572,23 +603,27 @@ export const chess = {
             solved = true;
             goal.innerHTML = '🎉 ' + esc(opts.doneText || 'Correct!');
             Audio.correct();
+            later(() => sayEn('Well done! ' + (opts.doneText || '')), 450);
             next.classList.remove('hidden');
             opts.onSolved();
           } else {
             wrongLock = true;
             goal.innerHTML = '❌ ' + esc(wrongText(item, m, c));
             Audio.wrong();
+            later(() => sayEn(wrongText(item, m, c)), 350);
             later(() => { c.undo(); board.syncLast(); board.clear(); wrongLock = false; }, 1300);
           }
         },
       });
       board.render();
+      sayEn(intro);
       if (item.type === 'see') opts.onSolved();
       const h = stage.querySelector('#cs-hint');
       if (h) h.onclick = () => {
         if (solved) return;
         board.setHint([item.hint]);
         goal.innerHTML = `💡 Look at the ${NAME[(c.get(item.hint) || {}).type] || 'piece'} on ${item.hint}.`;
+        sayEn(goal.textContent);
       };
     }
 
@@ -597,6 +632,7 @@ export const chess = {
       const last = i + 1 >= RULES.length;
       taskScreen(r, {
         title: `${r.emoji} ${r.title}`,
+        speakTitle: r.title,
         task: r.task,
         doneText: r.done,
         nextLabel: last ? 'Lessons ▶' : `Next: ${RULES[i + 1].title} ▶`,
@@ -620,6 +656,7 @@ export const chess = {
         : `White to move. Find the best move (${pz.cat.toLowerCase()}).`;
       taskScreen(pz, {
         title: `🧩 ${dayIdx >= 0 ? 'Scenario ' + (dayIdx + 1) + ': ' : ''}${pz.cat}`,
+        speakTitle: (dayIdx >= 0 ? 'Scenario ' + (dayIdx + 1) + ': ' : '') + pz.cat,
         task,
         hint: true,
         doneText: pz.why,
@@ -695,12 +732,12 @@ export const chess = {
       if (undoBtn) undoBtn.onclick = undo;
       if (hintBtn) hintBtn.onclick = hint;
       stage.querySelector('#cs-new').onclick = () => {
-        if (!over && c.history().length && !confirm('Start a new game?')) return;
-        clearGame();
-        settings.mode = mode; settings.level = level;
-        play(null);
+        const fresh = () => { clearGame(); settings.mode = mode; settings.level = level; play(null); };
+        if (over || !c.history().length) return fresh();
+        ask('Start a new game? This game will be lost.', 'Start new game', '← Go back to my game', fresh);
       };
-      stage.querySelector('#cs-menu').onclick = setup;
+      stage.querySelector('#cs-menu').onclick = () => { fromGame = !over; setup(); };
+      save();                   // saved from the first moment, so Menu can always come back
       refresh();
       if (!checkEnd()) nextTurn();
 
