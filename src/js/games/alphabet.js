@@ -5,8 +5,9 @@
 //   • Revise: 8-question quiz on learned letters (see the sound, tap the letter).
 //   • Restart: clears progress for this alphabet (confirm first).
 //   • Progress bar, daily goal (5 new letters) and day streak, per profile.
-// Voice: speaks the letter's native name with an Arabic / Urdu voice. When the
-// phone has no such voice, it reads the Roman sound with the English voice.
+// Voice: speaks the letter's native name with an Arabic / Urdu voice (Urdu
+// falls back to the Hindi voice, see urduVoice.js). When the phone has no such
+// voice, it reads the Roman sound with the English voice.
 
 import { Audio } from '../audio.js';
 import { Storage } from '../storage.js';
@@ -120,7 +121,7 @@ function makeAlphabet({ id, lang, name, emoji, desc, letters, script }) {
 
   function speakLetter(i) {
     const [, roman, native] = letters[i];
-    if (Audio.hasVoice && Audio.hasVoice(lang)) Audio.speak(native, lang);
+    if (Audio.canSpeak ? Audio.canSpeak(lang) : (Audio.hasVoice && Audio.hasVoice(lang))) Audio.speak(native, lang);
     else Audio.speak(roman, 'en');
   }
 

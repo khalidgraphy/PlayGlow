@@ -10,8 +10,27 @@
 // - Don't wait on a voices-loaded promise: getVoices() returns the system's
 //   sync list on macOS; iOS works with no voice (browser picks default per lang).
 
+import { toDevanagari } from './urduVoice.js';
+
 const LANG_CODE = { en: 'en-US', ar: 'ar-SA', ur: 'ur-PK' };
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+
+function hasLangVoice(prefix) {
+  const voices = synth?.getVoices?.() || [];
+  return voices.some(v => String(v.lang).toLowerCase().replace('_', '-').startsWith(prefix));
+}
+
+// Urdu: real Urdu voice if the phone has one. Otherwise speak the same word
+// in Devanagari with the Hindi voice (on nearly every phone; spoken Urdu and
+// Hindi sound the same for everyday words). The Arabic voice is the last
+// resort only, because it misreads Urdu letters and vowels.
+function route(text, lang) {
+  if (lang !== 'ur') return { text, code: LANG_CODE[lang] || 'en-US' };
+  if (hasLangVoice('ur')) return { text, code: 'ur-PK' };
+  const voices = synth?.getVoices?.() || [];
+  if (hasLangVoice('hi') || !voices.length) return { text: toDevanagari(text), code: 'hi-IN' };
+  return { text, code: 'ur-PK' };
+}
 
 function pickVoice(langCode) {
   const voices = synth?.getVoices?.() || [];
@@ -95,7 +114,15 @@ export const Audio = {
 
   speak(text, lang) {
     if (!synth) return;
-    speakNow(text, LANG_CODE[lang] || 'en-US');
+    const r = route(text, lang);
+    speakNow(r.text, r.code);
+  },
+
+  // True when this language can be spoken well: for Urdu, an Urdu voice or the
+  // Hindi voice route counts.
+  canSpeak(lang) {
+    if (lang === 'ur') return hasLangVoice('ur') || hasLangVoice('hi');
+    return this.hasVoice(lang);
   },
 
   // True when the device has a voice for this language (no Arabic fallback for Urdu).
@@ -110,7 +137,8 @@ export const Audio = {
     if (synth.speaking || synth.pending) synth.cancel();
     let delay = 60;
     items.forEach(({ text, lang }) => {
-      setTimeout(() => synth.speak(buildUtterance(text, LANG_CODE[lang] || 'en-US')), delay);
+      const r = route(text, lang);
+      setTimeout(() => synth.speak(buildUtterance(r.text, r.code)), delay);
       delay += Math.max(800, text.length * 80) + gapMs;
     });
   },
