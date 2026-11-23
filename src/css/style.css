@@ -2535,3 +2535,26 @@ body::before {
 .an-rv-urline { font-size: 16px; text-align: left; }
 .an-reveal .an-btns { margin-top: 8px; }
 .an-reveal .ww-ctrl.ab-next { padding: 10px 18px; }
+.ab-tabs.an-tabs4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.an-tabs4 .ab-tab { padding-left: 2px; padding-right: 2px; font-size: 13px; white-space: nowrap; }
+.an-lvls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin: 6px 0 4px; }
+.an-lvl { border: 2px solid var(--line); background: #fff; border-radius: 16px; padding: 10px 6px; font: inherit; font-size: 17px; font-weight: 800;
+  color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.an-lvl small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.an-lvl.active { border-color: var(--brand, #6b3fd4); background: #EDE7FF; }
+.an-opts.an-opts2 .an-opt-img { height: 150px; }
+.an-opts.an-opts3 { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.an-opts.an-opts3 .an-opt-img { height: 92px; }
+.an-opts.an-opts3 .an-opt-name { font-size: 14px; }
+.an-opt .an-cell-ur { font-size: 15px; line-height: 1.8; }
+.fv-msg:empty { display: none; }
+.fv-msg { width: 100%; border-radius: 18px; padding: 12px; border: 2px solid var(--line); text-align: center; font-size: 18px; font-weight: 800; color: var(--ink);
+  display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.fv-msg.good { border-color: #2E9E4F; background: #F0FBF3; }
+.fv-msg.bad { border-color: #F4A261; background: #FFF6EC; color: #B45309; }
+.fv-msg b { color: var(--brand, #6b3fd4); }
+.fv-msg .ww-ctrl { margin-top: 4px; }
+.fv-chips { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.fv-chip { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 14px; font-weight: 800; color: var(--ink); cursor: pointer; }
+.fv-chip.active { background: #FFF1DE; border-color: #F4A261; color: #B45309; }
+.fv-line { font-size: 16px; font-weight: 600; color: var(--ink); max-width: 320px; line-height: 1.4; }

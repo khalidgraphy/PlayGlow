@@ -104,7 +104,7 @@ export const animalSounds = {
   desc: 'Hear 19 animals, then guess who is talking',
   ageHint: 'Age 3+',
   custom: true,
-  guide: 'Learn: see each animal, hear its real sound, its name in English and Urdu, and how it sounds. Guess: listen to a sound and tap the animal that makes it. The right animal is shown after every guess.',
+  guide: 'Learn: see each animal, hear its real sound, its name in English and Urdu, and how it sounds. Guess: listen to a sound and tap the animal that makes it; the right animal is shown after every guess. Test: pick from 2 or 3 pictures; if you are wrong, listen again and try again.',
 
   start(stage) {
     const key = () => `playglow:animals:${Storage.getActiveProfile()?.id || 'anon'}`;
@@ -127,10 +127,11 @@ export const animalSounds = {
           <span class="ab-streak" id="an-best"></span>
         </div>
         <div class="ab-bar"><div class="ab-bar-fill" id="an-bar"></div></div>
-        <div class="ab-tabs">
+        <div class="ab-tabs an-tabs4">
           <button class="ab-tab" data-view="learn">📖 Learn</button>
-          <button class="ab-tab" data-view="grid">🐾 All animals</button>
+          <button class="ab-tab" data-view="grid">🐾 All</button>
           <button class="ab-tab" data-view="quiz">🎧 Guess</button>
+          <button class="ab-tab" data-view="test">✏️ Test</button>
         </div>
         <div class="ab-body" id="an-body"></div>
       </div>`;
@@ -153,6 +154,7 @@ export const animalSounds = {
       renderTop();
       if (v === 'learn') renderCard(!first);
       else if (v === 'grid') renderGrid();
+      else if (v === 'test') renderTest();
       else renderQuiz();
     }
 
@@ -303,6 +305,113 @@ export const animalSounds = {
           </div>`;
         body.querySelector('#an-again').onclick = () => renderQuiz();
         body.querySelector('#an-learn').onclick = () => show('learn');
+      }
+    }
+    // Test: hear a sound, pick from 2 (Easy) or 3 (Medium) pictures with names.
+    // Right = praise with the animal's name. Wrong = encouragement, that picture
+    // greys out, the sound plays again and the child tries again.
+    function renderTest() {
+      const TEST_LEN = 10;
+      let n = 2;
+      try { n = parseInt(localStorage.getItem('playglow:animals:testlevel'), 10) === 3 ? 3 : 2; } catch (e) {}
+      body.innerHTML = `
+        <div class="ab-card an-start">
+          <div class="ab-done-emoji">✏️</div>
+          <div class="ab-roman">Animal Test</div>
+          <div class="ab-hint">Listen to the sound and tap the right animal. ${TEST_LEN} sounds. Wrong? No problem, try again!</div>
+          <div class="an-lvls">
+            <button class="an-lvl" data-n="2">🌱 Easy<small>2 pictures</small></button>
+            <button class="an-lvl" data-n="3">🌿 Medium<small>3 pictures</small></button>
+          </div>
+          <div class="ab-nav"><button class="ww-ctrl ab-next" id="an-t-go">▶ Start test</button></div>
+        </div>`;
+      const marks = () => body.querySelectorAll('.an-lvl').forEach(b => b.classList.toggle('active', parseInt(b.dataset.n, 10) === n));
+      body.querySelectorAll('.an-lvl').forEach(b => {
+        b.onclick = () => { n = parseInt(b.dataset.n, 10); marks(); try { localStorage.setItem('playglow:animals:testlevel', String(n)); } catch (e) {} };
+      });
+      marks();
+      body.querySelector('#an-t-go').onclick = () => run(n);
+
+      function run(nPics) {
+        const PRAISE = ['Well done!', 'Great job!', 'Super!', 'You got it!', 'Excellent!', 'Brilliant!'];
+        const TRY = ['Oops, try again!', 'Not this one. Listen again!', 'Nice try! Try again.', 'You can do it, try again!'];
+        const pickOne = arr => arr[Math.floor(Math.random() * arr.length)];
+        const order = shuffle(ANIMALS).slice(0, TEST_LEN);
+        let qi = 0, score = 0;
+        ask();
+
+        function ask() {
+          if (!alive()) return;
+          if (qi >= order.length) return finish();
+          const ans = order[qi];
+          const others = shuffle(ANIMALS.filter(a => a !== ans && LOOKALIKE[ans.k] !== a.k)).slice(0, nPics - 1);
+          const opts = shuffle([ans].concat(others));
+          body.innerHTML = `
+            <div class="ab-quiz">
+              <div class="ab-count">Test · ${qi + 1} / ${order.length} · ⭐ ${score}</div>
+              <div class="ab-q">Which animal makes this sound?</div>
+              <button class="ab-listen an-play" id="an-t-play">🔊 Play the sound</button>
+              <div class="an-opts an-opts${nPics}">${opts.map(a => `
+                <button class="an-opt" data-k="${a.k}">${img(a, 'an-opt-img')}<span class="an-opt-name">${esc(a.en)}</span><span class="an-cell-ur" lang="ur">${a.ur}</span></button>`).join('')}</div>
+              <div class="fv-msg" id="an-t-msg"></div>
+            </div>`;
+          body.querySelector('#an-t-play').onclick = () => playSound(ans);
+          playSound(ans);
+          let missed = false, done = false;
+          const msg = body.querySelector('#an-t-msg');
+          body.querySelectorAll('.an-opt').forEach(b => {
+            b.onclick = () => {
+              if (done || b.disabled) return;
+              if (b.dataset.k === ans.k) {
+                done = true;
+                if (!missed) score += 1;
+                b.classList.add('right');
+                body.querySelectorAll('.an-opt').forEach(o => { o.disabled = true; });
+                stopSound();
+                Audio.correct();
+                const p = pickOne(PRAISE);
+                msg.className = 'fv-msg good'; setTimeout(() => { try { msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {} }, 50);
+                msg.innerHTML = `<div>🎉 ${p} It is the <b>${esc(ans.en)}</b></div>
+                  <div class="an-ur" lang="ur" dir="rtl">${ans.ur}</div>
+                  <div class="an-rv-says">“${esc(ans.says)}” ${esc(ans.line)}</div>
+                  <button class="ww-ctrl ab-next" id="an-t-next">${qi + 1 < order.length ? 'Next ▶' : 'Finish ✓'}</button>`;
+                msg.querySelector('#an-t-next').onclick = () => { qi += 1; ask(); };
+                if (s.seen.indexOf(ans.k) < 0) { s.seen.push(ans.k); save(); renderTop(); }
+                setTimeout(() => { if (alive()) Audio.speak(`${p} It is the ${ans.en}. ${ans.line}`, 'en'); }, 350);
+              } else {
+                missed = true;
+                b.classList.add('wrong'); b.disabled = true;
+                stopSound();
+                Audio.wrong();
+                const t = pickOne(TRY);
+                msg.className = 'fv-msg bad'; setTimeout(() => { try { msg.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {} }, 50);
+                msg.innerHTML = `💪 ${esc(t)}`;
+                setTimeout(() => { if (alive() && !done) Audio.speak(t, 'en'); }, 300);
+                // Play the sound again after the voice, so the child can listen once more.
+                setTimeout(() => { if (alive() && !done && order[qi] === ans) playSound(ans); }, 1900);
+              }
+            };
+          });
+        }
+
+        function finish() {
+          stopSound();
+          const stars = score >= TEST_LEN ? 3 : score >= TEST_LEN - 2 ? 2 : score >= TEST_LEN / 2 ? 1 : 0;
+          if (stars) { Audio.win(); Storage.addStars(stars); }
+          body.innerHTML = `
+            <div class="ab-card ab-done">
+              <div class="ab-done-emoji">${'⭐'.repeat(stars) || '💪'}</div>
+              <div class="ab-roman">${score} / ${TEST_LEN} first try</div>
+              <div class="ab-hint">${stars >= 2 ? 'Fantastic! You are an animal expert.' : 'Well tried! Practise in Learn and take the test again.'}</div>
+              <div class="ab-nav">
+                <button class="ww-ctrl ab-next" id="an-t-again">✏️ Again</button>
+                <button class="ww-ctrl" id="an-t-learn">📖 Learn</button>
+              </div>
+            </div>`;
+          body.querySelector('#an-t-again').onclick = () => renderTest();
+          body.querySelector('#an-t-learn').onclick = () => show('learn');
+          setTimeout(() => { if (alive()) Audio.speak(`You got ${score} out of ${TEST_LEN}. ${stars >= 2 ? 'Fantastic!' : 'Well tried!'}`, 'en'); }, 600);
+        }
       }
     }
   }

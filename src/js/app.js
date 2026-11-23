@@ -21,6 +21,7 @@ import { arabicAlphabet, urduAlphabet } from './games/alphabet.js'; // ids 15, 1
 import { ludo }                   from './games/ludo.js';           // id 17 (Games)
 import { chess }                  from './games/chessgame.js';      // id 18 (Games)
 import { animalSounds }           from './games/animals.js';        // id 19 (Learning)
+import { fruitsVeg }              from './games/fruitveg.js';       // id 20 (Learning)
 import { CRUSH_SUBS } from './games/sublevels.js';
 import { COLOR_MAP } from './games/crush.js';
 
@@ -37,7 +38,7 @@ const LEVEL1_PARENT = {
 
 // Display order on home — matches numeric id sequence (1..10)
 // (Daily Word removed; Color Trap moved from id 2 → id 10; Tic Tac Toe new at id 2)
-const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, ludo, chess, arabicAlphabet, urduAlphabet, animalSounds];
+const HOME_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, ludo, chess, arabicAlphabet, urduAlphabet, animalSounds, fruitsVeg];
 // ---------------- Daily Mix + Today's Surprise ----------------
 // Both are picked from a seed of (date + profile), so they stay the same all
 // day and change every morning. Picks respect the kid's age (activity age
@@ -150,7 +151,7 @@ function todaysSurprise() {
 }
 
 // Routing lookup: parent + sub-levels + everything
-const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, ludo, chess, arabicAlphabet, urduAlphabet, animalSounds, dailyMix];
+const ALL_LEVELS = [LEVEL1_PARENT, ticTacToe, wordFinder, ...CRUSH_SUBS, hearTap, spellIt, threeNames, firstLetter, matchTrans, missingLetter, colorTrap, wordWheel, tasbeeh, wildCards, snakesLadders, ludo, chess, arabicAlphabet, urduAlphabet, animalSounds, fruitsVeg, dailyMix];
 
 // Home categories (tabbed). Each activity maps to exactly one bucket.
 const CATEGORIES = [
@@ -179,6 +180,7 @@ const LEVEL_CATEGORY = {
   17: 'games',        // Ludo
   18: 'games',        // Chess
   19: 'learning',     // Animal Sounds
+  20: 'learning',     // Fruits & Vegetables
 };
 function categoryOf(lvl) { return LEVEL_CATEGORY[lvl.id] || 'learning'; }
 let activeCategory = 'learning';
