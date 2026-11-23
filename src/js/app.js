@@ -451,6 +451,14 @@ function init() {
     refreshBtn.textContent = 'Updating…';
     forceUpdate();
   };
+  // Small refresh icon on the home header: same update, no trip to Settings.
+  const homeRefresh = document.getElementById('home-refresh');
+  if (homeRefresh) homeRefresh.onclick = () => {
+    if (homeRefresh.disabled) return;
+    homeRefresh.disabled = true;
+    homeRefresh.classList.add('spinning');
+    setTimeout(forceUpdate, 350); // let the spin show before the page reloads
+  };
   // Silently drop a stale/revoked token so the UI doesn't show a false signed-in state.
   const tok = Storage.getAuthToken();
   if (tok) {
