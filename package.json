@@ -20,5 +20,8 @@
     "vite": "^5.4.0",
     "vite-plugin-pwa": "^0.20.0",
     "wrangler": "^3.78.0"
+  },
+  "dependencies": {
+    "chess.js": "1.2.0"
   }
 }
