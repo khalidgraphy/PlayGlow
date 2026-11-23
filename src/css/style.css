@@ -2486,3 +2486,52 @@ body::before {
 .cs-ask-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; background: #fff; border-radius: 18px; padding: 18px; box-shadow: 0 12px 34px rgba(0,0,0,.3); }
 .cs-ask-t { font-size: 16px; font-weight: 800; color: var(--ink); text-align: center; line-height: 1.4; margin-bottom: 4px; }
 .cs-ask-box .cs-btn { width: 100%; padding: 12px; font-size: 15px; }
+
+/* ---------- Activity 19: Animal Sounds (.an-*) ---------- */
+.an-root { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.an-card { gap: 4px; }
+.an-photo-btn { border: none; background: none; padding: 0; cursor: pointer; border-radius: 18px; }
+.an-photo-btn:active { transform: scale(0.97); }
+.an-photo { width: 220px; height: 220px; max-width: 64vw; max-height: 64vw; object-fit: cover; border-radius: 18px; display: block; box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+.an-emoji { display: flex; align-items: center; justify-content: center; font-size: 120px; background: #F4F0FF; }
+.an-names { display: flex; align-items: baseline; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+.an-en { font-size: 32px; font-weight: 800; color: var(--ink); line-height: 1.1; }
+.an-ur { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 28px; line-height: 1.9; color: var(--brand, #6b3fd4); }
+.an-says { font-size: 22px; font-weight: 800; color: #E8590C; }
+.an-line { font-size: 15px; font-weight: 600; color: var(--muted); }
+.an-urline, .an-rv-urline { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 18px; line-height: 2.1; color: var(--ink); }
+.an-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+.an-btns .ab-listen { padding: 10px 12px; font-size: 14px; margin-top: 0; }
+.ab-listen.an-sound, .ab-listen.an-play { background: var(--brand, #6b3fd4); color: #fff; }
+.ab-listen.an-play { font-size: 18px; padding: 13px 26px; }
+.an-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.an-cell { border: 2px solid var(--line); background: #fff; border-radius: 16px; padding: 6px 4px 4px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; font-family: inherit; }
+.an-cell:active, .an-opt:active { transform: scale(0.96); }
+.an-cell.learned { background: #E9F8EE; border-color: #B8E8C7; }
+.an-cell-img { width: 100%; height: 92px; object-fit: cover; border-radius: 12px; display: block; }
+.an-cell-img.an-emoji { font-size: 44px; }
+.an-cell-name { font-size: 13px; font-weight: 800; color: var(--ink); }
+.an-cell-ur { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 14px; line-height: 1.9; color: var(--muted); }
+.an-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+.an-opt { border: 3px solid var(--line); background: #fff; border-radius: 18px; padding: 6px; cursor: pointer; font-family: inherit;
+  display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.an-opt-img { width: 100%; height: 118px; object-fit: cover; border-radius: 12px; display: block; }
+.an-opt-img.an-emoji { font-size: 56px; }
+.an-opt-name { font-size: 16px; font-weight: 800; color: var(--ink); }
+.an-opt.right { border-color: #2E9E4F; background: #D9F5E2; }
+.an-opt.wrong { border-color: #E63946; background: #FFE0E0; opacity: .7; }
+.an-opt:disabled { cursor: default; }
+.an-reveal:empty { display: none; }
+.an-reveal { width: 100%; border-radius: 18px; padding: 12px; border: 2px solid var(--line); background: #fff; text-align: center; }
+.an-reveal.good { border-color: #2E9E4F; background: #F0FBF3; }
+.an-reveal.bad { border-color: #F4A261; background: #FFF6EC; }
+.an-rv-title { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+.an-rv-row { display: flex; gap: 12px; align-items: center; text-align: left; }
+.an-rv-img { width: 84px; height: 84px; flex-shrink: 0; object-fit: cover; border-radius: 14px; display: block; }
+.an-rv-img.an-emoji { font-size: 48px; }
+.an-rv-ur { font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; font-size: 22px; line-height: 1.9; color: var(--brand, #6b3fd4); text-align: left; }
+.an-rv-says { font-size: 14px; font-weight: 700; color: var(--muted); }
+.an-rv-urline { font-size: 16px; text-align: left; }
+.an-reveal .an-btns { margin-top: 8px; }
+.an-reveal .ww-ctrl.ab-next { padding: 10px 18px; }
